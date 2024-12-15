@@ -25,13 +25,15 @@ If you use Visual Studio:
 - 'Just Me' installation option doesn't work (use 'Everyone')
 
 ### Backlog Issues
-- Support for different database providers
+- Support 'Just Me' installation option
 - Support for migrations (trigered by entity stucture change?)
-- Support views generation
-- Support pub/sub generation (simmilar to controler)
+- Support views generation?
+- Support other API protocols, e.g, pub/sub (simmilar to controler)
 - Support SDK generation
 - Support more filter operators
-- Support/validate more EF capabilities (relations, indexes)
+- Support/validate more ORM-related capabilities (relations, indexes)
+- Support other ORMs (not EF, e.g. Dapper, RepoDb)?
+- Support other database providers (not MS SQL Server)
 
 ### Documentation
 - See [Project Guide](./Data/Templates/Doc/README.md) for generated project details

@@ -30,7 +30,7 @@ NestNet is a powerful tool for creating well-designed ASP.NET Core microservices
 
 ## CLI Installation
 
-1. Download the latest release of `NestNet.Cli` from [releases page] (TODO: add link)
+1. Download the latest release of [NestNet.Cli](https://github.com/choresh/nestnet/blob/main/NestNet.Cli/NestNet.Cli.Installer/Debug/NestNet.Cli.Installer.msi)
 2. Run the installer and select the 'Everyone' option when prompted
    > ⚠️ Note: The 'Just Me' option is currently not working due to a known path manipulation issue
 
@@ -53,7 +53,7 @@ Creates a new microservice application scaffold.
 2. Open terminal in this folder
 3. Run `nestnet` and select `Generate App`
 4. Open the generated solution in your IDE
-5. Add existing `NestNet.Infra` project to the solution (get it from [releases page] (TODO: add link))
+5. Download and add existing project [NestNet.Infra](https://github.com/choresh/nestnet/tree/main/NestNet.Infra) to the solution.
 6. Add reference to `NestNet.Infra` in your new project
 7. Run the project to verify the Swagger page loads
 
@@ -339,6 +339,6 @@ Modules/
    - Check build output for generation errors
 
 ### Getting Help
-- Check the [GitHub Issues (TODO)](https://github.com/yourusername/nestnet/issues)
+- Check the [GitHub Issues](https://github.com/choresh/nestnet/issues)
 - Join our [Discord Community (TODO)](https://discord.gg/yourdiscord)
 - Review the [FAQ (TODO)](https://your-docs-url.com/faq)
