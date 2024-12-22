@@ -1,9 +1,7 @@
 {
   "profiles": {
     "NestNet.Cli": {
-      "commandName": "Project",
-      "commandLineArgs": "dtos --tar-dir \\Dtos",
-      "workingDirectory": "C:\\GlobalE\\nestnet\\NestNet.Sample\\SampleApp"
+      "commandName": "Project"
     }
   }
 }

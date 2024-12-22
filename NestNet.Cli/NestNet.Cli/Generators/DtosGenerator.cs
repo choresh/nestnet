@@ -1,8 +1,6 @@
 ﻿using NestNet.Cli.Infra;
 using NestNet.Infra.Attributes;
-using NestNet.Infra.BaseClasses;
 using Spectre.Console;
-using System.IO;
 using System.Reflection;
 
 namespace NestNet.Cli.Generators

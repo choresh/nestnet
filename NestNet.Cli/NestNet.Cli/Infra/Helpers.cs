@@ -5,6 +5,21 @@ namespace NestNet.Cli.Infra
 {
     internal static partial class Helpers
     {
+        public static bool CheckTarDir(string tarDirPath)
+        {
+            string[] items = Directory.GetFileSystemEntries(tarDirPath);
+            if (items.Length > 0)
+            {
+                AnsiConsole.MarkupLine(Helpers.FormatMessage($"The target directory ('{tarDirPath}') is not empty, clean it or use another folder", "yellow"));
+                return false;
+            }
+            else
+            {
+                AnsiConsole.MarkupLine(Helpers.FormatMessage($"The target directory ('{tarDirPath}') is empty, folder content will be generated.", "green"));
+            }
+            return true;
+        }
+
         public static string ToKebabCase(string str)
         {
             return Regex.Replace(str, "([a-z])([A-Z])", "$1-$2").ToLower();

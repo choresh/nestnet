@@ -58,22 +58,33 @@ namespace NestNet.Cli.Generators
         public static void Run(InputParams? inputParams = null)
         {
             AnsiConsole.MarkupLine(Helpers.FormatMessage("\nModule generation - started\n", "green"));
-            ModuleGenerationContext? context;
-            if (inputParams != null)
+
+            try
             {
-                // Silent mode
-                context = CreateSilentModuleGenerationContext(inputParams);
+                ModuleGenerationContext? context;
+                if (inputParams != null)
+                {
+                    // Silent mode
+                    context = CreateSilentModuleGenerationContext(inputParams);
+                }
+                else
+                {
+                    // Interactive mode
+                    context = CreateInteractiveModuleGenerationContext();
+                }
+                if (context == null || !Helpers.CheckTarDir(context.ModulePath))
+                {
+                    AnsiConsole.MarkupLine(Helpers.FormatMessage("\nModule generation - ended, unable to generate the module", "green"));
+                    return;
+                }
+                CreateModuleFiles(context);
             }
-            else
+            catch (Exception ex)
             {
-                // Interactive mode
-                context = CreateInteractiveModuleGenerationContext();
-            }
-            if (context == null)
-            {
+                AnsiConsole.MarkupLine(Helpers.FormatMessage($"\nModule generation - failed ({ex.Message})", "red"));
                 return;
             }
-            CreateModuleFiles(context);
+
             AnsiConsole.MarkupLine(Helpers.FormatMessage("\nModule generation - ended successfully", "green"));
         }
 

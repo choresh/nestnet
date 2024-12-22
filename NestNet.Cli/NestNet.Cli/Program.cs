@@ -51,8 +51,7 @@ class Program
         Console.WriteLine("    Usage: nestnet");
         Console.WriteLine();
         Console.WriteLine("  Generate new application:");
-        Console.WriteLine("    Usage: nestnet app --force [--no-console]");
-        Console.WriteLine();
+        Console.WriteLine("    Usage: nestnet app [--no-console]"); Console.WriteLine();
         Console.WriteLine("  Generate new module (in application):");
         Console.WriteLine("    A generated module contains:");
         Console.WriteLine("      * Sample Entity");
@@ -116,15 +115,12 @@ class Program
     static void SetupAppCommand(Command rootCommand)
     {
         var appCommand = new Command("app", "Generate new application");
-        var forceOption = new Option<bool>("--force", "Force regeneration of folder content");
-        appCommand.AddOption(forceOption);
-        appCommand.SetHandler((force) =>
+        appCommand.SetHandler(() =>
         {
             AppGenerator.Run(new AppGenerator.InputParams()
             {
-                Force = force
             });
-        }, forceOption);
+        });
         rootCommand.AddCommand(appCommand);
     }
 

@@ -36,22 +36,33 @@ namespace NestNet.Cli.Generators
         public static void Run(InputParams? inputParams = null)
         {
             AnsiConsole.MarkupLine(Helpers.FormatMessage("\nResource generation - started\n", "green"));
-            ResourceGenerationContext? context;
-            if (inputParams != null)
+
+            try
             {
-                // Silent mode
-                context = CreateSilentResourceGenerationContext(inputParams);
+                ResourceGenerationContext? context;
+                if (inputParams != null)
+                {
+                    // Silent mode
+                    context = CreateSilentResourceGenerationContext(inputParams);
+                }
+                else
+                {
+                    // Interactive mode
+                    context = CreateInteractiveResourceGenerationContext();
+                }
+                if (context == null || !Helpers.CheckTarDir(context.ResourcePath))
+                {
+                    AnsiConsole.MarkupLine(Helpers.FormatMessage("\nResource generation - ended, unable to generate the resource", "green"));
+                    return;
+                }
+                CreateResourceFiles(context);
             }
-            else
+            catch (Exception ex)
             {
-                // Interactive mode
-                context = CreateInteractiveResourceGenerationContext();
-            }
-            if (context == null)
-            {
+                AnsiConsole.MarkupLine(Helpers.FormatMessage($"\nResource generation - failed ({ex.Message})", "red"));
                 return;
             }
-            CreateResourceFiles(context);
+
             AnsiConsole.MarkupLine(Helpers.FormatMessage("\nResource generation - ended successfully", "green"));
         }
 

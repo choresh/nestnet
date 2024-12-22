@@ -10,21 +10,16 @@ namespace NestNet.Cli.Generators
     {
         public class InputParams
         {
-            /// <summary>
-            /// Force regeneration of folder content.
-            /// </summary>
-            public bool Force { get; set; }
+            // Currently - this generator not requerid any params.
         }
 
         private class AppGenerationContext
         {
-            public AppGenerationContext(bool force, string currentDir, string projectName) {
-                Force = force;
+            public AppGenerationContext(string currentDir, string projectName) {
                 CurrentDir = currentDir;
                 ProjectName = projectName; 
                
             }
-            public bool Force { get; private set; }
             public string CurrentDir { get; private set; }
             public string ProjectName { get; private set; }
         }
@@ -33,23 +28,32 @@ namespace NestNet.Cli.Generators
         {
             AnsiConsole.MarkupLine(Helpers.FormatMessage("App generation - startrd\n", "green"));
 
-            var context = CreateAppGenerationContext(inputParams);
-
-            var goOn = PrepareDirectory(context);
-            if (!goOn) {
-                return;
-            }
-            goOn = GenerateWebApiProject(context);
-            if (!goOn)
+            try
             {
+
+                var context = CreateAppGenerationContext(inputParams);
+                var goOn = Helpers.CheckTarDir(context.CurrentDir);
+                if (goOn)
+                {
+                    goOn = GenerateWebApiProject(context);
+                }
+                if (!goOn)
+                {
+                    AnsiConsole.MarkupLine(Helpers.FormatMessage("\nApp generation - ended, unable to generate the app", "green"));
+                    return;
+                }
+                RemoveFsItems(context);
+                CreateFsItems(context);
+                ModifyWebApiProject(context);
+                AddTestPackages();
+                AddDtoGenerator(context);
+                CopyDocumentation(context.CurrentDir);
+            }
+            catch (Exception ex)
+            {
+                AnsiConsole.MarkupLine(Helpers.FormatMessage($"\nApp generation - failed ({ex.Message})", "red"));
                 return;
             }
-            RemoveFsItems(context);
-            CreateFsItems(context);
-            ModifyWebApiProject(context);
-            AddTestPackages();
-            AddDtoGenerator(context);
-            CopyDocumentation(context.CurrentDir);
 
             AnsiConsole.MarkupLine(Helpers.FormatMessage("\nApp generation - ended successfully", "green"));
         }
@@ -58,40 +62,7 @@ namespace NestNet.Cli.Generators
         {
             var currentDir = Directory.GetCurrentDirectory();
             var projectName = Path.GetFileName(currentDir);
-            var force = (inputParams != null) && inputParams.Force;
-            return new AppGenerationContext(force, currentDir, projectName);
-        }
-
-        private static bool PrepareDirectory(AppGenerationContext context)
-        {
-            string[] items = Directory.GetFileSystemEntries(context.CurrentDir);
-
-            if (items.Length > 0)
-            {
-                AnsiConsole.MarkupLine(Helpers.FormatMessage($"The current folder ('{context.CurrentDir}') is not empty.", "green"));
-                if (AnsiConsole.Confirm("Do you want to regenerate the folder content?"))
-                {
-                    AnsiConsole.Status()
-                        .Start("Deleting folder contents...", ctx =>
-                        {
-                            Directory.Delete(context.CurrentDir, true);
-                            Directory.CreateDirectory(context.CurrentDir);
-                            ctx.Status("Folder contents deleted.");
-                            ctx.Spinner(Spinner.Known.Star);
-                            ctx.SpinnerStyle(Style.Parse("green"));
-                        });
-                }
-                else
-                {
-                    AnsiConsole.MarkupLine(Helpers.FormatMessage("Operation cancelled. Exiting without making changes.", "red"));
-                    return false;
-                }
-            }
-            else
-            {
-                AnsiConsole.MarkupLine(Helpers.FormatMessage($"The current folder ('{context.CurrentDir}') is empty, folder content will be generated.", "green"));
-            }
-            return true;
+            return new AppGenerationContext(currentDir, projectName);
         }
 
         private static bool GenerateWebApiProject(AppGenerationContext context)
