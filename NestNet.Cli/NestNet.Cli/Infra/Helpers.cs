@@ -7,17 +7,19 @@ namespace NestNet.Cli.Infra
     {
         public static bool CheckTarDir(string tarDirPath)
         {
+            if (!Directory.Exists(tarDirPath))
+            {
+                AnsiConsole.MarkupLine(Helpers.FormatMessage($"The target directory ('{tarDirPath}') not exists, directory content will be generated.", "green"));
+                return true;
+            }
             string[] items = Directory.GetFileSystemEntries(tarDirPath);
-            if (items.Length > 0)
+            if (items.Length == 0)
             {
-                AnsiConsole.MarkupLine(Helpers.FormatMessage($"The target directory ('{tarDirPath}') is not empty, clean it or use another folder", "yellow"));
-                return false;
+                AnsiConsole.MarkupLine(Helpers.FormatMessage($"The target directory ('{tarDirPath}') is empty, directory content will be generated.", "green"));
+                return true;
             }
-            else
-            {
-                AnsiConsole.MarkupLine(Helpers.FormatMessage($"The target directory ('{tarDirPath}') is empty, folder content will be generated.", "green"));
-            }
-            return true;
+            AnsiConsole.MarkupLine(Helpers.FormatMessage($"The target directory ('{tarDirPath}') is not empty, clean it or use another directory", "yellow"));
+            return false;
         }
 
         public static string ToKebabCase(string str)
