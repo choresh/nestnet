@@ -7,9 +7,9 @@ using NestNet.Infra.Helpers;
 
 namespace NestNet.Infra.BaseClasses
 {
-    public abstract class CrudServiceBase<TEntity, TCreateDto, TUpdateDto, TResultDto> : ICrudService<TEntity, TCreateDto, TUpdateDto, TResultDto > where TEntity : IEntity
+    public abstract class CrudServiceBase<TEntity, TCreateDto, TUpdateDto, TResultDto, TQueryDto> : ICrudService<TEntity, TCreateDto, TUpdateDto, TResultDto, TQueryDto> where TEntity : IEntity where TQueryDto : class
     {
-        protected readonly IDao<TEntity> _dao;
+        protected readonly IDao<TEntity, TQueryDto> _dao;
         private readonly IMapper _mapper;
         private readonly List<string> _selectableProps;
 
@@ -25,6 +25,10 @@ namespace NestNet.Infra.BaseClasses
                 CreateMap<TUpdateDto, TEntity>()
                     .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
 
+                // Direct mapping from QueryDto to Entity with null value handling
+                CreateMap<TQueryDto, TEntity>()
+                    .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+
                 // Direct mapping from Entity to ResultDto with null value handling
                 CreateMap<TEntity, TResultDto>()
                     .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
@@ -34,7 +38,7 @@ namespace NestNet.Infra.BaseClasses
             }
         }
 
-        public CrudServiceBase(IDao<TEntity> dao)
+        public CrudServiceBase(IDao<TEntity, TQueryDto> dao)
         {
             var config = new MapperConfiguration(cfg =>
             {
@@ -142,7 +146,7 @@ namespace NestNet.Infra.BaseClasses
         {
             return _selectableProps;
         }
-       
+
         private bool IsSelectableProp(PropertyInfo p)
         {
             var attr = p.GetCustomAttribute<PropAttribute>();
@@ -270,6 +274,17 @@ namespace NestNet.Infra.BaseClasses
             {
                 Data = safeRequest
             };
+        }
+
+        public async Task<IEnumerable<TResultDto>> GetMany(FindManyArgs<TEntity, TQueryDto> filter)
+        {
+            var entities = await _dao.GetMany(filter);
+            return ToResultDtos(entities);
+        }
+
+        public async Task<MetadataDto> GetMeta(FindManyArgs<TEntity, TQueryDto> filter)
+        {
+            return await _dao.GetMeta(filter);
         }
     }
 }

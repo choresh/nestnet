@@ -212,9 +212,10 @@ namespace NestNet.Cli.Generators
         {
             WriteLog($"Start processing entity: {entity.Name}");
 
-            GenerateDto(context, entity, pluralizedModuleName, targetPath, DtoType.Create);
-            GenerateDto(context, entity, pluralizedModuleName, targetPath, DtoType.Update);
-            GenerateDto(context, entity, pluralizedModuleName, targetPath, DtoType.Result);
+            foreach (DtoType dtoType in Enum.GetValues(typeof(DtoType)))
+            {
+                GenerateDto(context, entity, pluralizedModuleName, targetPath, dtoType);
+            }
 
             WriteLog($"Finished processing entity: {entity.Name}");
         }
@@ -257,6 +258,11 @@ namespace NestNet.Cli.Generators
                             break;
                         case DtoType.Result:
                             opt = propAttribute.Result;
+                            break;
+                        case DtoType.Query:
+                            opt = propAttribute.Result == GenOpt.Ignore
+                                ? GenOpt.Ignore
+                                : GenOpt.Optional;
                             break;
                         default:
                             throw new Exception("Unexpected DTO Type");

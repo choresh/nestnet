@@ -6,7 +6,7 @@ using Microsoft.Data.SqlClient;
 
 namespace NestNet.Infra.BaseClasses
 {
-    public class DaoBase<TEntity> : IDao<TEntity> where TEntity : class, IEntity
+    public class DaoBase<TEntity, TQueryDto> : IDao<TEntity, TQueryDto> where TEntity : class, IEntity where TQueryDto: class
     {
         protected readonly DbContext _context;
         protected readonly DbSet<TEntity> _dbSet;
@@ -235,6 +235,22 @@ namespace NestNet.Infra.BaseClasses
             }
 
             return entity;
+        }
+
+        public async Task<IEnumerable<TEntity>> GetMany(FindManyArgs<TEntity, TQueryDto> filter)
+        {
+            return await _dbSet
+                .ApplyWhere(filter.Where)
+                .ApplySkip(filter.Skip)
+                .ApplyTake(filter.Take)
+                .ApplyOrderBy(filter.SortBy)
+                .ToListAsync();
+        }
+
+        public async Task<MetadataDto> GetMeta(FindManyArgs<TEntity, TQueryDto> filter)
+        {
+            var count = await _dbSet.ApplyWhere(filter.Where).CountAsync();
+            return new MetadataDto { Count = count };
         }
     }
 }

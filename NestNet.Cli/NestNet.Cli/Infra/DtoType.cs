@@ -4,6 +4,7 @@
     {
         Create,
         Update,
-        Result
+        Result,
+        Query
     };
 }

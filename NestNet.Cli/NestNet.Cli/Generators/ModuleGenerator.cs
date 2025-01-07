@@ -1,4 +1,5 @@
 ﻿using NestNet.Cli.Infra;
+using NestNet.Infra.BaseClasses;
 using NestNet.Infra.Helpers;
 using Spectre.Console;
 using System.Text.RegularExpressions;
@@ -219,9 +220,10 @@ namespace NestNet.Cli.Generators
             if (context.GenerateDbSupport)
             {
                 CreateEntityFile(context);
-                CreateDtoFile(context, DtoType.Create);
-                CreateDtoFile(context, DtoType.Update);
-                CreateDtoFile(context, DtoType.Result);
+                foreach (DtoType dtoType in Enum.GetValues(typeof(DtoType)))
+                {
+                    CreateDtoFile(context, dtoType);
+                }
                 CreateDaoFile(context);
                 CreateDaoTestFile(context);
             }
