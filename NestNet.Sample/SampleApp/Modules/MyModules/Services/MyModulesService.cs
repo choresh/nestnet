@@ -6,13 +6,13 @@ using SampleApp.Modules.MyModules.Daos;
 
 namespace SampleApp.Modules.MyModules.Services
 {
-    public interface IMyModulesService: ICrudService<Entities.MyModule, MyModuleCreateDto, MyModuleUpdateDto, MyModuleResultDto>
+    public interface IMyModulesService: ICrudService<Entities.MyModule, MyModuleCreateDto, MyModuleUpdateDto, MyModuleResultDto, MyModuleQueryDto>
     {
         // If you add methods to derived class - expose them here.
     }
 
     [Injectable(LifetimeType.Scoped)]
-    public class MyModulesService : CrudServiceBase<Entities.MyModule, MyModuleCreateDto, MyModuleUpdateDto, MyModuleResultDto>, IMyModulesService
+    public class MyModulesService : CrudServiceBase<Entities.MyModule, MyModuleCreateDto, MyModuleUpdateDto, MyModuleResultDto, MyModuleQueryDto>, IMyModulesService
     {
         public MyModulesService(IMyModuleDao myModuleDao)
             : base(myModuleDao)

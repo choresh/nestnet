@@ -7,7 +7,7 @@ using SampleApp.Modules.MyModules.Services;
 namespace SampleApp.Modules.MyModules.Controllers
 {
     [Route("api/my-modules")]
-    public class MyModulesController : CrudControllerBase<Entities.MyModule, MyModuleCreateDto, MyModuleUpdateDto, MyModuleResultDto>
+    public class MyModulesController : CrudControllerBase<Entities.MyModule, MyModuleCreateDto, MyModuleUpdateDto, MyModuleResultDto, MyModuleQueryDto>
     {
         public MyModulesController(IMyModulesService myModulesService)
             : base(myModulesService, "myModuleId")

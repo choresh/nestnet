@@ -2,16 +2,17 @@
 using SampleApp.Data;
 using NestNet.Infra.BaseClasses;
 using NestNet.Infra.Attributes;
+using SampleApp.Modules.MyModules.Dtos;
 
 namespace SampleApp.Modules.MyModules.Daos
 {
-    public interface IMyModuleDao: IDao<Entities.MyModule>
+    public interface IMyModuleDao: IDao<Entities.MyModule, MyModuleQueryDto>
     {
         // If you add methods to derived class - expose them here.
     }
 
     [Injectable(LifetimeType.Scoped)]
-    public class MyModuleDao : DaoBase<Entities.MyModule>, IMyModuleDao
+    public class MyModuleDao : DaoBase<Entities.MyModule, MyModuleQueryDto>, IMyModuleDao
     {
         public MyModuleDao(ApplicationDbContext context)
             : base(context, context.GetDbSet<Entities.MyModule>(), "myModuleId")
