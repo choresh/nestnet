@@ -399,6 +399,7 @@ namespace {context.ProjectName}.Modules.{context.PluralizedModuleName}.Entities
 using {context.ProjectName}.Data;
 using NestNet.Infra.BaseClasses;
 using NestNet.Infra.Attributes;
+using {context.ProjectName}.Modules.{context.PluralizedModuleName}.Dtos;
 
 namespace {context.ProjectName}.Modules.{context.PluralizedModuleName}.Daos
 {{
