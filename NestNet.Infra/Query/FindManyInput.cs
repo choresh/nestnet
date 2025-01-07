@@ -1,7 +1,6 @@
-
 namespace NestNet.Infra.Query;
 
-public abstract class FindManyInput<M, W> : PaginationInput, IFindManyInput<M, W>
+public abstract class FindManyInput<M, W> : QueryRange, IFindManyInput<M, W>
     where W : class
 {
     public W? Where { get; set; }

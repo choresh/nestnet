@@ -1,4 +1,5 @@
-﻿using NestNet.Infra.Query;
+﻿using NestNet.Infra.Paginatation;
+using NestNet.Infra.Query;
 
 namespace NestNet.Infra.BaseClasses
 {

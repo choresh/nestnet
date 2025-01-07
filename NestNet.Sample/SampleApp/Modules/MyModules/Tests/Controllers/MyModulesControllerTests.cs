@@ -9,6 +9,7 @@ using System.Text.Json;
 using SampleApp.Modules.MyModules.Services;
 using SampleApp.Modules.MyModules.Controllers;
 using SampleApp.Modules.MyModules.Dtos;
+using NestNet.Infra.Paginatation;
 
 namespace SampleApp.Modules.MyModules.Tests.Controllers
 {
@@ -230,7 +231,6 @@ namespace SampleApp.Modules.MyModules.Tests.Controllers
             await _myModulesService.Received(1).Delete(id);
         }
 
-        /*
         [Fact]
         public async Task GetPaginated_ReturnsOkResult_WithPaginatedItems()
         {
@@ -280,9 +280,7 @@ namespace SampleApp.Modules.MyModules.Tests.Controllers
                 JsonSerializer.Serialize(request)
             );
         }
-        */
 
-        /*
         [Fact]
         public async Task GetPaginated_ReturnsParametersError()
         {
@@ -313,7 +311,6 @@ namespace SampleApp.Modules.MyModules.Tests.Controllers
             Assert.Equal(400, badRequestResult.StatusCode);
             Assert.Equal(badRequestResult.Value, expectedResult.Error);
         }
-        */
 
         [Fact]
         public async Task GetMany_ReturnsMatchingItems()

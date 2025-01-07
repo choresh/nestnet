@@ -4,6 +4,7 @@ using AutoMapper;
 using NestNet.Infra.Attributes;
 using System.Reflection;
 using NestNet.Infra.Helpers;
+using NestNet.Infra.Paginatation;
 
 namespace NestNet.Infra.BaseClasses
 {

@@ -1,6 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using NestNet.Infra.Attributes;
-using NestNet.Infra.BaseClasses;
 using System.Reflection;
 
 namespace NestNet.Infra.Helpers

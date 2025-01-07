@@ -1,4 +1,5 @@
 using System.Linq.Dynamic.Core;
+using NestNet.Infra.Paginatation;
 
 namespace NestNet.Infra.Query;
 

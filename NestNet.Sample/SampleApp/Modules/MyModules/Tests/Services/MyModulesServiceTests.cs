@@ -1,13 +1,13 @@
 using NSubstitute;
 using Xunit;
 using NestNet.Infra.Query;
-using NestNet.Infra.BaseClasses;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using System.Text.Json;
 using SampleApp.Modules.MyModules.Services;
 using SampleApp.Modules.MyModules.Dtos;
 using SampleApp.Modules.MyModules.Daos;
+using NestNet.Infra.Paginatation;
 
 namespace SampleApp.Modules.MyModules.Tests.Services
 {

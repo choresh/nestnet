@@ -8,6 +8,7 @@ using SampleApp.Modules.MyModules.Dtos;
 using SampleApp.Modules.MyModules.Daos;
 using SampleApp.Data;
 using Microsoft.EntityFrameworkCore;
+using NestNet.Infra.Paginatation;
 
 namespace SampleApp.Modules.MyModules.Tests.Daos
 {

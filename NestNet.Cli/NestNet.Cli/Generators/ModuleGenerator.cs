@@ -224,7 +224,8 @@ namespace NestNet.Cli.Generators
                 CreateEntityFile(context);
                 foreach (DtoType dtoType in Enum.GetValues(typeof(DtoType)))
                 {
-                    CreateDtoFile(context, dtoType);
+                    string? properties = GetInitialDtoProperties(context, dtoType);
+                    CreateDtoFile(context, dtoType, null, properties);
                 }
                 CreateDaoFile(context);
                 CreateDaoTestFile(context);
@@ -243,6 +244,30 @@ namespace NestNet.Cli.Generators
             }
         }
 
+        // In Result/Query DTO we set initial content (an ID property), since it is is required in initial (i.e. default) code of some unit tests.
+        private static string? GetInitialDtoProperties(ModuleGenerationContext context, DtoType dtoType)
+        {
+            string? properties;
+            switch (dtoType)
+            {
+                case DtoType.Result:
+                    properties = $@"
+        public int {context.ModuleName}Id {{ get; set; }}
+";
+            break;
+                case DtoType.Query:
+                    properties = $@"
+        public int? {context.ModuleName}Id {{ get; set; }}
+";
+                    break;
+                default:
+                    properties = null;
+                    break;
+
+            }
+            return properties;
+        }
+
         private static void CreateEntityFile(ModuleGenerationContext context)
         {
             string entityContent = GetEntityContent(context);
@@ -252,9 +277,9 @@ namespace NestNet.Cli.Generators
             AnsiConsole.MarkupLine(Helpers.FormatMessage($"Created: {entityPath}", "grey"));
         }
 
-        private static void CreateDtoFile(ModuleGenerationContext context, DtoType dtoType, Type? baseClass = null)
+        private static void CreateDtoFile(ModuleGenerationContext context, DtoType dtoType, Type? baseClass = null, string? properties = null)
         {
-            string dtoContent = Helpers.GetDtoContent(context.ProjectName, context.ModuleName, context.PluralizedModuleName, dtoType, baseClass);
+            string dtoContent = Helpers.GetDtoContent(context.ProjectName, context.ModuleName, context.PluralizedModuleName, dtoType, baseClass, properties);
             string dtoPath = Path.Combine(context.ModulePath, "Dtos", $"{Helpers.FormatDtoName(context.ModuleName, dtoType)}.cs");
             Directory.CreateDirectory(GetDirectoryName(dtoPath));
             File.WriteAllText(dtoPath, dtoContent);
@@ -542,6 +567,7 @@ using NSubstitute;
 using Xunit;
 using NestNet.Infra.Query;
 using NestNet.Infra.BaseClasses;
+using NestNet.Infra.Paginatation;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using System.Text.Json;
@@ -942,6 +968,7 @@ namespace {context.ProjectName}.Modules.{context.PluralizedModuleName}.Tests.Con
 using Xunit;
 using NestNet.Infra.Query;
 using NestNet.Infra.BaseClasses;
+using NestNet.Infra.Paginatation;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using System.Text.Json;
@@ -1468,6 +1495,7 @@ namespace {context.ProjectName}.Modules.{context.PluralizedModuleName}.Tests.Ser
             return $@"using Xunit;
 using NestNet.Infra.Query;
 using NestNet.Infra.Helpers;
+using NestNet.Infra.Paginatation;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using System.Text.Json;

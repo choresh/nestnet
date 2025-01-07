@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Reflection;
 using SampleApp.Data;
 using NestNet.Infra.Helpers;
+using NestNet.Infra.Swagger;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -42,12 +43,11 @@ builder.Services.AddSwaggerGen(c =>
     c.EnableAnnotations();
 
     // Add enum descriptions
-    c.SchemaFilter<SwaggerHelper.EnumSchemaFilter>();
+    c.SchemaFilter<EnumSchemaFilter>();
+    c.SchemaFilter<EnumSchemaFilter2>();
 
     // Add QueryDto properties descriptions
-    c.SchemaFilter<SwaggerHelper.QueryDtoSchemaFilter>();
-
-    c.SchemaFilter<SwaggerHelper.EnumSchemaFilter2>();
+    c.SchemaFilter<QueryDtoSchemaFilter>();
 });
 
 var app = builder.Build();

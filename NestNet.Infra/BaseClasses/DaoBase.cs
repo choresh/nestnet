@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using NestNet.Infra.Query;
 using System.Linq.Expressions;
 using Microsoft.Data.SqlClient;
+using NestNet.Infra.Paginatation;
 
 namespace NestNet.Infra.BaseClasses
 {
