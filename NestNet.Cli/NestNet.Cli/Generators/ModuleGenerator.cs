@@ -1,5 +1,4 @@
 ﻿using NestNet.Cli.Infra;
-using NestNet.Infra.BaseClasses;
 using NestNet.Infra.Helpers;
 using Spectre.Console;
 using System.Text.RegularExpressions;
@@ -51,6 +50,7 @@ namespace NestNet.Cli.Generators
             public required string CreateDtoName { get; set; }
             public required string UpdateDtoName { get; set; }
             public required string ResultDtoName { get; set; }
+            public required string QueryDtoName { get; set; }
             public required bool GenerateDbSupport { get; set; }
             public required bool GenerateService { get; set; }
             public required bool GenerateController { get; set; }
@@ -119,6 +119,7 @@ namespace NestNet.Cli.Generators
                 CreateDtoName = Helpers.FormatDtoName(inputParams.ModuleName, DtoType.Create),
                 UpdateDtoName = Helpers.FormatDtoName(inputParams.ModuleName, DtoType.Update),
                 ResultDtoName = Helpers.FormatDtoName(inputParams.ModuleName, DtoType.Result),
+                QueryDtoName = Helpers.FormatDtoName(inputParams.ModuleName, DtoType.Query),
                 GenerateController = inputParams.GenerateController,
                 GenerateService = inputParams.GenerateService,
                 GenerateDbSupport = inputParams.GenerateDbSupport
@@ -173,6 +174,7 @@ namespace NestNet.Cli.Generators
                 CreateDtoName = Helpers.FormatDtoName(moduleName, DtoType.Create),
                 UpdateDtoName = Helpers.FormatDtoName(moduleName, DtoType.Update),
                 ResultDtoName = Helpers.FormatDtoName(moduleName, DtoType.Result),
+                QueryDtoName = Helpers.FormatDtoName(moduleName, DtoType.Query),
                 GenerateDbSupport = generateDbSupport,
                 GenerateService = generateService,
                 GenerateController = generateController
@@ -400,13 +402,13 @@ using NestNet.Infra.Attributes;
 
 namespace {context.ProjectName}.Modules.{context.PluralizedModuleName}.Daos
 {{
-    public interface I{context.ModuleName}Dao: IDao<{context.EntityFullName}>
+    public interface I{context.ModuleName}Dao: IDao<{context.EntityFullName}, {context.QueryDtoName}>
     {{
         // If you add methods to derived class - expose them here.
     }}
 
     [Injectable(LifetimeType.Scoped)]
-    public class {context.ModuleName}Dao : DaoBase<{context.EntityFullName}>, I{context.ModuleName}Dao
+    public class {context.ModuleName}Dao : DaoBase<{context.EntityFullName}, {context.QueryDtoName}>, I{context.ModuleName}Dao
     {{
         public {context.ModuleName}Dao(ApplicationDbContext context)
             : base(context, context.GetDbSet<{context.EntityFullName}>(), ""{context.ParamName}Id"")
@@ -441,13 +443,13 @@ using {context.ProjectName}.Modules.{context.PluralizedModuleName}.Daos;
 
 namespace {context.ProjectName}.Modules.{context.PluralizedModuleName}.Services
 {{
-    public interface I{context.PluralizedModuleName}Service: ICrudService<{context.EntityFullName}, {context.CreateDtoName}, {context.UpdateDtoName}, {context.ResultDtoName}>
+    public interface I{context.PluralizedModuleName}Service: ICrudService<{context.EntityFullName}, {context.CreateDtoName}, {context.UpdateDtoName}, {context.ResultDtoName}, {context.QueryDtoName}>
     {{
         // If you add methods to derived class - expose them here.
     }}
 
     [Injectable(LifetimeType.Scoped)]
-    public class {context.PluralizedModuleName}Service : CrudServiceBase<{context.EntityFullName}, {context.CreateDtoName}, {context.UpdateDtoName}, {context.ResultDtoName}>, I{context.PluralizedModuleName}Service
+    public class {context.PluralizedModuleName}Service : CrudServiceBase<{context.EntityFullName}, {context.CreateDtoName}, {context.UpdateDtoName}, {context.ResultDtoName}, {context.QueryDtoName}>, I{context.PluralizedModuleName}Service
     {{
         public {context.PluralizedModuleName}Service(I{context.ModuleName}Dao {context.ParamName}Dao)
             : base({context.ParamName}Dao)
@@ -483,7 +485,7 @@ using {context.ProjectName}.Modules.{context.PluralizedModuleName}.Services;
 namespace {context.ProjectName}.Modules.{context.PluralizedModuleName}.Controllers
 {{
     [Route(""api/{context.KebabCasePluralizedModuleName}"")]
-    public class {context.PluralizedModuleName}Controller : CrudControllerBase<{context.EntityFullName}, {context.CreateDtoName}, {context.UpdateDtoName}, {context.ResultDtoName}>
+    public class {context.PluralizedModuleName}Controller : CrudControllerBase<{context.EntityFullName}, {context.CreateDtoName}, {context.UpdateDtoName}, {context.ResultDtoName}, {context.QueryDtoName}>
     {{
         public {context.PluralizedModuleName}Controller(I{context.PluralizedModuleName}Service {context.PluralizedParamName}Service)
             : base({context.PluralizedParamName}Service, ""{context.ParamName}Id"")
