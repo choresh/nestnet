@@ -310,5 +310,89 @@ namespace SampleApp.Modules.MyModules.Tests.Controllers
             Assert.Equal(400, badRequestResult.StatusCode);
             Assert.Equal(badRequestResult.Value, expectedResult.Error);
         }
+
+        [Fact]
+        public async Task GetMany_ReturnsMatchingItems()
+        {
+            // Arrange
+            var expectedResult = _fixture.CreateMany<MyModuleResultDto>(3).ToList();
+            _myModulesService.GetMany(Arg.Any<FindManyArgs<Entities.MyModule, MyModuleQueryDto>>()).Returns(Task.FromResult<IEnumerable<MyModuleResultDto>>([expectedResult.ToArray()[1]]));
+             var filter = new FindManyArgs<Entities.MyModule, MyModuleQueryDto>()
+            {
+                Where = new MyModuleQueryDto
+                {
+                    MyModuleId = expectedResult[1].MyModuleId
+                }
+            };
+
+            // Act
+            var result = await _controller.GetMany(filter);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result.Result);
+            Assert.NotNull(okResult);
+            Assert.Equal(200, okResult.StatusCode);
+            var resultData = Assert.IsAssignableFrom<IEnumerable<MyModuleResultDto>>(okResult.Value);
+            Assert.Single(resultData);
+            Assert.NotNull(resultData.FirstOrDefault());
+            Assert.Equal(
+                JsonSerializer.Serialize(expectedResult[1]),
+                JsonSerializer.Serialize(resultData.FirstOrDefault()),
+                true
+            );
+            await _myModulesService.Received(1).GetMany(filter);
+        }
+
+        [Fact]
+        public async Task GetMany_ReturnsEmptyList_WhenNoIdsMatch()
+        {
+            // Arrange
+            _myModulesService.GetMany(Arg.Any<FindManyArgs<Entities.MyModule, MyModuleQueryDto>>()).Returns(Task.FromResult<IEnumerable<MyModuleResultDto>>([]));
+        
+            var filter = new FindManyArgs<Entities.MyModule, MyModuleQueryDto>()
+            {
+                Where = new MyModuleQueryDto
+                {
+                    MyModuleId = -1
+                }
+            };
+
+            // Act
+            var result = await _controller.GetMany(filter);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result.Result);
+            Assert.NotNull(okResult);
+            Assert.Equal(200, okResult.StatusCode);
+            var resultData = Assert.IsAssignableFrom<IEnumerable<MyModuleResultDto>>(okResult.Value);
+            Assert.Empty(resultData);
+            await _myModulesService.Received(1).GetMany(filter);
+        }
+
+        [Fact]
+        public async Task GetMeta_ReturnsCorrectMetadata()
+        {
+            // Arrange
+            var count = _fixture.Create<int>();
+            _myModulesService.GetMeta(Arg.Any<FindManyArgs<Entities.MyModule, MyModuleQueryDto>>()).Returns(Task.FromResult(new MetadataDto() { Count = count }));
+            var filter = new FindManyArgs<Entities.MyModule, MyModuleQueryDto>()
+            {
+                Where = new MyModuleQueryDto
+                {
+                    MyModuleId = -1
+                }
+            };
+
+            // Act
+            var result = await _controller.GetMeta(filter);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(result.Result);
+            Assert.NotNull(okResult);
+            Assert.Equal(200, okResult.StatusCode);
+            var resultData = Assert.IsAssignableFrom<MetadataDto>(okResult.Value);
+            Assert.Equal(count, resultData.Count);
+            await _myModulesService.Received(1).GetMeta(filter);
+        }
     }
 }

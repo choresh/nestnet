@@ -8,6 +8,7 @@ using SampleApp.Modules.MyModules.Dtos;
 using SampleApp.Modules.MyModules.Daos;
 using SampleApp.Data;
 using Microsoft.EntityFrameworkCore;
+using NestNet.Infra.BaseClasses;
 
 namespace SampleApp.Modules.MyModules.Tests.Daos
 {
@@ -255,6 +256,73 @@ namespace SampleApp.Modules.MyModules.Tests.Daos
             Assert.Equal(
                 JsonSerializer.Serialize(expectedResult.Items),
                 JsonSerializer.Serialize(result.Items));
+        }
+
+        [Fact]
+        public async Task GetMany_ReturnsMatchingItems()
+        {
+            // Arrange
+            var srcEntities = _fixture.CreateMany<Entities.MyModule>(3).ToList();
+            srcEntities.ForEach(async (entity) => await _dao.Create(entity));
+            var filter = new FindManyArgs<Entities.MyModule, MyModuleQueryDto>()
+            {
+                Where = new MyModuleQueryDto
+                {
+                    MyModuleId = srcEntities[1].MyModuleId
+                }
+            };
+
+            // Act
+            var result = await _dao.GetMany(filter);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Single(result);
+            Assert.Equal(srcEntities[1], result.FirstOrDefault());
+        }
+
+        [Fact]
+        public async Task GetMany_ReturnsEmptyList_WhenNoIdsMatch()
+        {
+            // Arrange
+            var srcEntities = _fixture.CreateMany<Entities.MyModule>(3).ToList();
+            srcEntities.ForEach(async (entity) => await _dao.Create(entity));
+            var filter = new FindManyArgs<Entities.MyModule, MyModuleQueryDto>()
+            {
+                Where = new MyModuleQueryDto
+                {
+                    MyModuleId = -1
+                }
+            };
+
+            // Act
+            var result = await _dao.GetMany(filter);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Empty(result);
+        }
+
+        [Fact]
+        public async Task GetMeta_ReturnsCorrectMetadata()
+        {
+            // Arrange
+            var srcEntities = _fixture.CreateMany<Entities.MyModule>(3).ToList();
+            srcEntities.ForEach(async (entity) => await _dao.Create(entity));
+            var filter = new FindManyArgs<Entities.MyModule, MyModuleQueryDto>()
+            {
+                Where = new MyModuleQueryDto
+                {
+                    MyModuleId = srcEntities[1].MyModuleId
+                }
+            };
+
+            // Act
+            var result = await _dao.GetMeta(filter);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(1, result.Count);
         }
     }
 }

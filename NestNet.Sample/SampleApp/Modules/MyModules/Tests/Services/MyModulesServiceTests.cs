@@ -444,5 +444,82 @@ namespace SampleApp.Modules.MyModules.Tests.Services
             Assert.Contains("Invalid sort properties", result.Error);
             Assert.Contains("Invalid filter properties", result.Error);
         }
+
+        [Fact]
+        public async Task GetMany_ReturnsMatchingItems()
+        {
+            // Arrange
+            var srcEntities = _fixture.CreateMany<Entities.MyModule>(3).ToList();
+            var expectedResult = _service.ToResultDtos([srcEntities.ToArray()[1]]);
+            _myModuleDao.GetMany(Arg.Any<FindManyArgs<Entities.MyModule, MyModuleQueryDto>>()).Returns(Task.FromResult<IEnumerable<Entities.MyModule>>([srcEntities.ToArray()[1]]));
+      
+            var filter = new FindManyArgs<Entities.MyModule, MyModuleQueryDto>()
+            {
+                Where = new MyModuleQueryDto
+                {
+                    MyModuleId = srcEntities[1].MyModuleId
+                }
+            };
+
+            // Act
+            var result = await _service.GetMany(filter);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Single(result);
+            Assert.NotNull(result.FirstOrDefault());
+            Assert.Equal(
+                JsonSerializer.Serialize(expectedResult.FirstOrDefault()),
+                JsonSerializer.Serialize(result.FirstOrDefault()),
+                true
+            );
+            await _myModuleDao.Received(1).GetMany(filter);
+        }
+
+        [Fact]
+        public async Task GetMany_ReturnsEmptyList_WhenNoIdsMatch()
+        {
+            // Arrange
+            _myModuleDao.GetMany(Arg.Any<FindManyArgs<Entities.MyModule, MyModuleQueryDto>>()).Returns(Task.FromResult<IEnumerable<Entities.MyModule>>([]));
+
+            var filter = new FindManyArgs<Entities.MyModule, MyModuleQueryDto>()
+            {
+                Where = new MyModuleQueryDto
+                {
+                    MyModuleId = -1
+                }
+            };
+
+            // Act
+            var result = await _service.GetMany(filter);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Empty(result);
+            await _myModuleDao.Received(1).GetMany(filter);
+        }
+
+        [Fact]
+        public async Task GetMeta_ReturnsCorrectMetadata()
+        {
+            // Arrange
+            var count = _fixture.Create<int>();
+            _myModuleDao.GetMeta(Arg.Any<FindManyArgs<Entities.MyModule, MyModuleQueryDto>>()).Returns(Task.FromResult(new MetadataDto() { Count = count}));
+            var filter = new FindManyArgs<Entities.MyModule, MyModuleQueryDto>()
+            {
+                Where = new MyModuleQueryDto
+                {
+                    MyModuleId = -1
+                }
+            };
+
+            // Act
+            var result = await _service.GetMeta(filter);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(count, result.Count);
+            await _myModuleDao.Received(1).GetMeta(filter);
+        }
     }
 }
