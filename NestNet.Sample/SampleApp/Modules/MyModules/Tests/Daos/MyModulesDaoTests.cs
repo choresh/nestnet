@@ -8,7 +8,6 @@ using SampleApp.Modules.MyModules.Dtos;
 using SampleApp.Modules.MyModules.Daos;
 using SampleApp.Data;
 using Microsoft.EntityFrameworkCore;
-using NestNet.Infra.BaseClasses;
 
 namespace SampleApp.Modules.MyModules.Tests.Daos
 {

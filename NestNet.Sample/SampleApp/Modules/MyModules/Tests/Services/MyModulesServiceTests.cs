@@ -452,7 +452,6 @@ namespace SampleApp.Modules.MyModules.Tests.Services
             var srcEntities = _fixture.CreateMany<Entities.MyModule>(3).ToList();
             var expectedResult = _service.ToResultDtos([srcEntities.ToArray()[1]]);
             _myModuleDao.GetMany(Arg.Any<FindManyArgs<Entities.MyModule, MyModuleQueryDto>>()).Returns(Task.FromResult<IEnumerable<Entities.MyModule>>([srcEntities.ToArray()[1]]));
-      
             var filter = new FindManyArgs<Entities.MyModule, MyModuleQueryDto>()
             {
                 Where = new MyModuleQueryDto
@@ -481,7 +480,6 @@ namespace SampleApp.Modules.MyModules.Tests.Services
         {
             // Arrange
             _myModuleDao.GetMany(Arg.Any<FindManyArgs<Entities.MyModule, MyModuleQueryDto>>()).Returns(Task.FromResult<IEnumerable<Entities.MyModule>>([]));
-
             var filter = new FindManyArgs<Entities.MyModule, MyModuleQueryDto>()
             {
                 Where = new MyModuleQueryDto
