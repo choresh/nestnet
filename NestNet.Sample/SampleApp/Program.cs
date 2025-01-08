@@ -44,7 +44,6 @@ builder.Services.AddSwaggerGen(c =>
 
     // Add enum descriptions
     c.SchemaFilter<EnumSchemaFilter>();
-    c.SchemaFilter<EnumSchemaFilter2>();
 
     // Add QueryDto properties descriptions
     c.SchemaFilter<QueryDtoSchemaFilter>();
