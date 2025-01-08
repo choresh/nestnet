@@ -23,8 +23,18 @@ namespace NestNet.Infra.Swagger
                     .Select(p => StringHelper.ToCamelCase(p.Name))
                     .ToList();
 
-                schema.Enum = properties.Select(p => new OpenApiString(p)).Cast<IOpenApiAny>().ToList();
-                schema.Type = "string";
+                // Create items schema for array
+                var itemsSchema = new OpenApiSchema
+                {
+                    Type = "string",
+                    Enum = properties.Select(p => new OpenApiString(p)).Cast<IOpenApiAny>().ToList()
+                };
+
+                // Set up array schema with MultipleOf to enable better multi-select UI
+                schema.Type = "array";
+                schema.Items = itemsSchema;
+                schema.UniqueItems = true;
+                schema.MultipleOf = 1;
             }
         }
     }
