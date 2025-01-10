@@ -1,6 +1,7 @@
 using Xunit;
 using NestNet.Infra.Query;
 using NestNet.Infra.Helpers;
+using NestNet.Infra.Paginatation;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using System.Text.Json;
@@ -8,7 +9,6 @@ using SampleApp.Modules.MyModules.Dtos;
 using SampleApp.Modules.MyModules.Daos;
 using SampleApp.Data;
 using Microsoft.EntityFrameworkCore;
-using NestNet.Infra.Paginatation;
 
 namespace SampleApp.Modules.MyModules.Tests.Daos
 {
