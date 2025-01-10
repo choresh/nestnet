@@ -55,7 +55,10 @@ namespace NestNet.Infra.Helpers
                     {
                         // Try to create the table if it doesn't exist
                         var sql = dbCreator.GenerateCreateScript();
-                        var createTableSql = sql.Split("GO").FirstOrDefault(s => s.Contains($"CREATE TABLE [{table}]"));
+                        var createTableSql = sql.Split("GO").FirstOrDefault(s => 
+                            s.Contains($"CREATE TABLE [{table}]") || // MS SQL syntax
+                            s.Contains($"CREATE TABLE \"{table}\"") // Postgres syntax
+                        );
                         if (!string.IsNullOrEmpty(createTableSql))
                         {
                             context.Database.ExecuteSqlRaw(createTableSql);
