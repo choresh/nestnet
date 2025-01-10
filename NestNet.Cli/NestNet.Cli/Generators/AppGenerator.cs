@@ -280,9 +280,7 @@ static string CreateConnectionString(string[] args)
 }}
 
 // * Add Entity Framework Core.
-// * If namespace of your entities is not standard (not ended with '.Entities') - customise via C'tor of 'ApplicationDbContext'.
-// * If location of your entities is not at the standard folder ('.\Modules\<module name>\Entities') - customise
-//   parametrs for post-build command that execute the 'GenerateDtos.ps1' script.
+// * If your entities not located (only) at current assembly - customise via C'tor of 'ApplicationDbContext'.
 var connectionString = CreateConnectionString(args);
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
