@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using NestNet.Infra.Attributes;
+using NestNet.Infra.Helpers;
 
 namespace NestNet.Infra.BaseClasses
 {
@@ -25,6 +26,7 @@ namespace NestNet.Infra.BaseClasses
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            DbProvidersHelper.Init(Database.ProviderName!);
             MapDbSets(modelBuilder);
             SetStoreOptionsInAllEntities(modelBuilder);
         }
@@ -95,17 +97,20 @@ namespace NestNet.Infra.BaseClasses
 
                     var builder = genericEntityMethod?.Invoke(modelBuilder, null) as EntityTypeBuilder;
 
+                    var currDateFunc = DbProvidersHelper.GetDbProviderHelper().GetCurrDateFunc();
+
                     // Configure CreatedAt to only set value on insert and never update
                     builder?
                         .Property(nameof(EntityBase.CreatedAt))
-                        .HasDefaultValueSql("GETUTCDATE()")
+                        .HasDefaultValueSql(currDateFunc)
                         .ValueGeneratedOnAdd()
                         .Metadata.SetAfterSaveBehavior(PropertySaveBehavior.Ignore);
 
                     // Configure UpdatedAt to update value on both insert and update
                     builder?
                         .Property(nameof(EntityBase.UpdatedAt))
-                        .HasDefaultValueSql("GETUTCDATE()");
+                        .HasDefaultValueSql(currDateFunc);
+
                 }
                 // If the type not inherits from EntityBase, throw exception
                 else

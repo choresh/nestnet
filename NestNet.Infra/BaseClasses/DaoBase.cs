@@ -4,6 +4,8 @@ using NestNet.Infra.Query;
 using System.Linq.Expressions;
 using Microsoft.Data.SqlClient;
 using NestNet.Infra.Paginatation;
+using NestNet.Infra.Helpers;
+using Npgsql;
 
 namespace NestNet.Infra.BaseClasses
 {
@@ -187,55 +189,8 @@ namespace NestNet.Infra.BaseClasses
                 throw new ArgumentException($"Properties for updating of Entity with {_idFieldName} {id} not supplied");
             }
 
-            TEntity? entity;
-
-            // Check if we're using in-memory database
-            if (_context.Database.ProviderName == "Microsoft.EntityFrameworkCore.InMemory")
-            {
-                entity = await _dbSet.FindAsync(id);
-                if (entity != null)
-                {
-                    foreach (var dtoProp in modifiedProperties)
-                    {
-                        // Find matching property in entity
-                        var entityProp = typeof(TEntity).GetProperty(dtoProp.Name);
-                        if (entityProp != null && entityProp.CanWrite)
-                        {
-                            var value = dtoProp.GetValue(updateDto);
-                            entityProp.SetValue(entity, value);
-                        }
-                    }
-                    await _context.SaveChangesAsync();
-                }
-            }
-            else
-            {
-                // For SQL Server, use the atomic UPDATE with OUTPUT
-                var setStatements = string.Join(", ",
-                    modifiedProperties.Select(p => $"{p.Name} = @{p.Name}"))
-                    + ", UpdatedAt = GETUTCDATE()";
-                
-                var tableName = _dbSet.EntityType.GetTableName();
-                var sql = $@"
-                    UPDATE {tableName} 
-                    SET {setStatements}
-                    OUTPUT INSERTED.*
-                    WHERE {_idFieldName} = @Id;
-                ";
-
-                // Modified to always include the parameter, even if null
-                var parameters = modifiedProperties
-                    .Select(p => new SqlParameter($"@{p.Name}", p.GetValue(updateDto) ?? DBNull.Value))
-                    .Concat(new[] { new SqlParameter("@Id", id) })
-                    .ToArray();
-
-                entity = _dbSet
-                    .FromSqlRaw(sql, parameters)
-                    .AsEnumerable()
-                    .FirstOrDefault();
-            }
-
-            return entity;
+            return await DbProvidersHelper.GetDbProviderHelper().UpdateEntity(_dbSet, _idFieldName,
+                _context, id, updateDto, modifiedProperties);
         }
 
         public async Task<IEnumerable<TEntity>> GetMany(FindManyArgs<TEntity, TQueryDto> filter)

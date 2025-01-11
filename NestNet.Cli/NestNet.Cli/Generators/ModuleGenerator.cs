@@ -437,7 +437,7 @@ namespace {context.ProjectName}.Modules.{context.PluralizedModuleName}.Daos
     public class {context.ModuleName}Dao : DaoBase<{context.EntityFullName}, {context.QueryDtoName}>, I{context.ModuleName}Dao
     {{
         public {context.ModuleName}Dao(ApplicationDbContext context)
-            : base(context, context.GetDbSet<{context.EntityFullName}>(), ""{context.ParamName}Id"")
+            : base(context, context.GetDbSet<{context.EntityFullName}>(), ""{context.ModuleName}Id"")
         {{
         }}
 
@@ -514,7 +514,7 @@ namespace {context.ProjectName}.Modules.{context.PluralizedModuleName}.Controlle
     public class {context.PluralizedModuleName}Controller : CrudControllerBase<{context.EntityFullName}, {context.CreateDtoName}, {context.UpdateDtoName}, {context.ResultDtoName}, {context.QueryDtoName}>
     {{
         public {context.PluralizedModuleName}Controller(I{context.PluralizedModuleName}Service {context.PluralizedParamName}Service)
-            : base({context.PluralizedParamName}Service, ""{context.ParamName}Id"")
+            : base({context.PluralizedParamName}Service, ""{context.ModuleName}Id"")
         {{
         }}
 
@@ -1174,7 +1174,7 @@ namespace {context.ProjectName}.Modules.{context.PluralizedModuleName}.Tests.Ser
         public async Task GetPaginated_ReturnsPaginatedItems()
         {{
             // Arrange
-            var propertyName = ""{context.ParamName}Id"";
+            var propertyName = ""{context.ModuleName}Id"";
             var safeRequest = new SafePaginationRequest()
             {{
                 SortCriteria = new List<SortCriteria>()
@@ -1254,7 +1254,7 @@ namespace {context.ProjectName}.Modules.{context.PluralizedModuleName}.Tests.Ser
         public async Task GetPaginated_IncompleteCriteria_ReturnsParametersError()
         {{
             // Arrange
-            var propertyName = ""{context.ParamName}Id"";
+            var propertyName = ""{context.ModuleName}Id"";
             var safeRequest = new SafePaginationRequest()
             {{
                 SortCriteria = new List<SortCriteria>()
@@ -1308,7 +1308,7 @@ namespace {context.ProjectName}.Modules.{context.PluralizedModuleName}.Tests.Ser
         public async Task GetPaginated_InvalidEnumValue_ReturnsParametersError()
         {{
             // Arrange
-            var propertyName = ""{context.ParamName}Id"";
+            var propertyName = ""{context.ModuleName}Id"";
             var safeRequest = new SafePaginationRequest()
             {{
                 SortCriteria = new List<SortCriteria>()
@@ -1362,7 +1362,7 @@ namespace {context.ProjectName}.Modules.{context.PluralizedModuleName}.Tests.Ser
         public async Task GetPaginated_InvalidPropertyName_ReturnsParametersError()
         {{
             // Arrange
-            var propertyName = ""{context.ParamName}Id"";
+            var propertyName = ""{context.ModuleName}Id"";
             var safeRequest = new SafePaginationRequest()
             {{
                 SortCriteria = new List<SortCriteria>()
@@ -1710,7 +1710,7 @@ namespace {context.ProjectName}.Modules.{context.PluralizedModuleName}.Tests.Dao
                .ToList();
             srcEntities.ForEach(async (entity) => await _dao.Create(entity));
             var value = srcEntities[1].{context.ModuleName}Id;
-            var propertyName = ""{context.ParamName}Id"";
+            var propertyName = ""{context.ModuleName}Id"";
             var resultItems = srcEntities
                   .Where(e => (e.{context.ModuleName}Id != value))
                   .OrderByDescending(e => e.{context.ModuleName}Id);

@@ -43,6 +43,8 @@ namespace NestNet.Infra.Helpers
             }
             else
             {
+                var quotes = DbProvidersHelper.GetDbProviderHelper().GetQuotes();
+
                 // If the database exists, use a custom approach to add only new tables
                 var dbCreator = (RelationalDatabaseCreator)context.Database.GetService<IDatabaseCreator>();
                 var tables = context.Model.GetEntityTypes()
@@ -53,11 +55,10 @@ namespace NestNet.Infra.Helpers
                 {
                     try
                     {
-                        // Try to create the table if it doesn't exist
                         var sql = dbCreator.GenerateCreateScript();
+                        
                         var createTableSql = sql.Split("GO").FirstOrDefault(s => 
-                            s.Contains($"CREATE TABLE [{table}]") || // MS SQL syntax
-                            s.Contains($"CREATE TABLE \"{table}\"") // Postgres syntax
+                            s.Contains($"CREATE TABLE {quotes.OpenQuote}{table}{quotes.CloseQuote}")
                         );
                         if (!string.IsNullOrEmpty(createTableSql))
                         {
