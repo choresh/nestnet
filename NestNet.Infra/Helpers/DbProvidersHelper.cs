@@ -1,5 +1,5 @@
-﻿using Microsoft.Data.SqlClient;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Data.SqlClient;
 using Npgsql;
 
 namespace NestNet.Infra.Helpers
@@ -15,6 +15,7 @@ namespace NestNet.Infra.Helpers
         public interface IDbProviderHelper
         {
             Quotes GetQuotes();
+
             string GetCurrDateFunc();
 
             Task<TEntity?> UpdateEntity<TEntity, TUpdateDto>(
@@ -25,10 +26,34 @@ namespace NestNet.Infra.Helpers
                TUpdateDto updateDto,
                List<System.Reflection.PropertyInfo> modifiedProperties
             ) where TEntity : class;
+
+            Task<bool> DeleteEntity<TEntity>(
+               DbSet<TEntity> dbSet,
+               string idFieldName,
+               DbContext context,
+               int id
+               ) where TEntity : class;
         }
 
         private class InMemoryHelper : IDbProviderHelper
         {
+            public async Task<bool> DeleteEntity<TEntity>(
+                DbSet<TEntity> dbSet,
+                string idFieldName,
+                DbContext context,
+                int id
+                ) where TEntity : class
+            {
+                var entity = await dbSet.FindAsync(id);
+                if (entity == null)
+                {
+                    return false;
+                }
+                dbSet.Remove(entity);
+                await context.SaveChangesAsync();
+                return true;
+            }
+
             public string GetCurrDateFunc()
             {
                 return "CURRENT_TIMESTAMP()";
@@ -73,6 +98,27 @@ namespace NestNet.Infra.Helpers
 
         private class MsSqlHelper : IDbProviderHelper
         {
+            public async Task<bool> DeleteEntity<TEntity>(
+               DbSet<TEntity> dbSet,
+               string idFieldName,
+               DbContext context,
+               int id
+               ) where TEntity : class
+            {
+                var tableName = dbSet.EntityType.GetTableName();
+
+                var sql = $@"
+                    DELETE FROM {tableName}
+                    WHERE {idFieldName} = @Id;
+                    SELECT @@ROWCOUNT;
+                ";
+
+                var rowsAffected = await context.Database
+                    .ExecuteSqlRawAsync(sql, new SqlParameter("@Id", id));
+
+                return rowsAffected > 0;
+            }
+
             public string GetCurrDateFunc()
             {
                 return "CURRENT_TIMESTAMP()";
@@ -125,6 +171,28 @@ namespace NestNet.Infra.Helpers
 
         private class PostgresHelper : IDbProviderHelper
         {
+            public async Task<bool> DeleteEntity<TEntity>(
+                DbSet<TEntity> dbSet,
+                string idFieldName,
+                DbContext context,
+                int id
+                ) where TEntity : class
+            {
+                var quotes = GetDbProviderHelper().GetQuotes();
+                var tableName = dbSet.EntityType.GetTableName();
+                var schema = dbSet.EntityType.GetSchema() ?? "public";
+
+                var sql = $@"
+                    DELETE FROM {$"{quotes.OpenQuote}{schema}{quotes.CloseQuote}.{quotes.OpenQuote}{tableName}{quotes.CloseQuote}"}
+                    WHERE {$"{quotes.OpenQuote}{idFieldName}{quotes.CloseQuote}"} = @Id;
+                ";
+
+                var rowsAffected = await context.Database
+                    .ExecuteSqlRawAsync(sql, new NpgsqlParameter("@Id", id));
+
+                return rowsAffected > 0;
+            }
+
             public string GetCurrDateFunc()
             {
                 return "CURRENT_TIMESTAMP";

@@ -10,7 +10,7 @@ namespace SampleApp.Modules.MyModules.Controllers
     public class MyModulesController : CrudControllerBase<Entities.MyModule, MyModuleCreateDto, MyModuleUpdateDto, MyModuleResultDto, MyModuleQueryDto>
     {
         public MyModulesController(IMyModulesService myModulesService)
-            : base(myModulesService, "myModuleId")
+            : base(myModulesService, "MyModuleId")
         {
         }
 

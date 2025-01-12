@@ -288,7 +288,7 @@ namespace SampleApp.Modules.MyModules.Tests.Services
         public async Task GetPaginated_IncompleteCriteria_ReturnsParametersError()
         {
             // Arrange
-            var propertyName = "myModuleId";
+            var propertyName = "MyModuleId";
             var safeRequest = new SafePaginationRequest()
             {
                 SortCriteria = new List<SortCriteria>()
@@ -342,7 +342,7 @@ namespace SampleApp.Modules.MyModules.Tests.Services
         public async Task GetPaginated_InvalidEnumValue_ReturnsParametersError()
         {
             // Arrange
-            var propertyName = "myModuleId";
+            var propertyName = "MyModuleId";
             var safeRequest = new SafePaginationRequest()
             {
                 SortCriteria = new List<SortCriteria>()
@@ -396,7 +396,7 @@ namespace SampleApp.Modules.MyModules.Tests.Services
         public async Task GetPaginated_InvalidPropertyName_ReturnsParametersError()
         {
             // Arrange
-            var propertyName = "myModuleId";
+            var propertyName = "MyModuleId";
             var safeRequest = new SafePaginationRequest()
             {
                 SortCriteria = new List<SortCriteria>()

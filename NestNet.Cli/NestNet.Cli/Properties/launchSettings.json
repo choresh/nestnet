@@ -1,8 +1,7 @@
 {
   "profiles": {
     "NestNet.Cli": {
-      "commandName": "Project",
-      "workingDirectory": "C:\\GlobalE\\nestnet\\NestNet.Sample\\SampleApp"
+      "commandName": "Project"
     }
   }
 }

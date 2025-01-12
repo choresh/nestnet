@@ -216,7 +216,7 @@ namespace SampleApp.Modules.MyModules.Tests.Daos
                .ToList();
             srcEntities.ForEach(async (entity) => await _dao.Create(entity));
             var value = srcEntities[1].MyModuleId;
-            var propertyName = "myModuleId";
+            var propertyName = "MyModuleId";
             var resultItems = srcEntities
                   .Where(e => (e.MyModuleId != value))
                   .OrderByDescending(e => e.MyModuleId);

@@ -25,8 +25,12 @@ NestNet is a powerful tool for creating well-designed ASP.NET Core microservices
 - Windows 10 or later
 - .NET 7.0 or later
 - .NET IDE (Visual Studio, Rider, etc.)
-- SQL Server Developer Edition
-- SQL Server Management Studio (SSMS)
+- If you are going to use MSSQL in your microservice(s):
+    * SQL Server Developer Edition
+    * SQL Server Management Studio (SSMS)
+- If you are going to use POSTGRES in your microservice(s):
+    * PostgreSQL
+    * PgAdmin
 
 ## CLI Installation
 
@@ -120,20 +124,34 @@ Project/
 ```
 
 ## Database Configuration
+- Note: to configure the required environment variables (see bellow) - you can update and use PowerShell scripts located [here](https://github.com/choresh/nestnet/tree/main/Scripts).
+
+### If you going to use MSSQL in your microservice(s):
 
 1. Set up SQL Server login with admin role:
    - Enable "SQL Server and Windows Authentication mode"
    - Create SQL Server authentication user with sysadmin role
 
 2. Configure environment variables:
-   - DB_SERVER
-   - DB_NAME
-   - DB_USER
-   - DB_PASSWORD
-   - DB_TRUST_SERVER_CERTIFICATE
-   - DB_TRUSTED_CONNECTION
-   - DB_MULTIPLE_ACTIVE_RESULT_SETS
+   - MSSQL_SERVER
+   - MSSQL_DB_NAME
+   - MSSQL_USER
+   - MSSQL_PASSWORD
+   - MSSQL_TRUST_SERVER_CERTIFICATE
+   - MSSQL_TRUSTED_CONNECTION
+   - MSSQL_MULTIPLE_ACTIVE_RESULT_SETS
 
+### If you going to use POSTGRES in your microservice(s):
+
+1. Set up PostgresSQL login with admin role:
+   - During installation, set a password for the default 'postgres' superuser
+
+2. Configure environment variables:
+   - POSTGRES_SERVER
+   - POSTGRES_DB_NAME
+   - POSTGRES_USER
+   - POSTGRES_PASSWORD
+   
 ## Features
 
 ### CRUD Support
@@ -147,6 +165,9 @@ All module endpoints automatically support standard CRUD operations:
 | Update | PUT | /api/{resource}/{id} | Updates an existing entity |
 | Delete | DELETE | /api/{resource}/{id} | Deletes an entity by ID |
 | GetPaginated | GET | /api/{resource}/paginated | Retrieves paginated results |
+| GetMany | GET | /api/{resource}/many | Retrieves many entities |
+| GetMeta | GET | /api/{resource}/meta | Retrieves many entities metadata |
+
 
 ### DTO Support
 - Data Transfer Objects (DTOs) are automatically generated to ensure type safety and clear API contracts.
@@ -154,10 +175,11 @@ All module endpoints automatically support standard CRUD operations:
 - Generation occurs during build time to ensure DTOs stay synchronized with entity changes.
 
 #### DTO Types
-Each entity in your modules automatically receives three DTO classes:
+Each entity in your modules automatically receives 4 DTO classes:
 - `CreateDto`: Contains all properties required for entity creation
 - `UpdateDto`: Contains all modifiable properties for entity updates
 - `ResultDto`: Contains all properties of entity, as returned by controller/service operations
+- `QueryDto`: Contains all properties of entity, as may passed to controller/service queries
 
 #### DTOs Generation Example
 Sample source entity:
@@ -201,7 +223,16 @@ public class UserResultDto
     public string? Email { get; set; } // Optional
     public DateTime CreatedAt { get; set; } // Mandatory
 }
+
+public class UserQueryDto
+{
+    public int? UserId { get; set; } // Optional
+    public string? Username { get; set; } // Optional
+    public string? Email { get; set; } // Optional
+    public DateTime? CreatedAt { get; set; } // Optional
+}
 ```
+Note: all properties in 'QueryDto' are based on properties of 'ResultDto', but they will all be generated as optional (this kind of generation is NOT controllable via the 'Prop' attribute, it is done under the hood).
 
 ### Pagination
 All module endpoints support standardized pagination through the `GetPaginated()` method.
@@ -264,7 +295,7 @@ public class UserService : IUserService
 ```
 
 ### Database Support
-Entity Framework Core integration with Microsoft SQL Server is pre-configured:
+Entity Framework Core integration (with Microsoft SQL Server or with PosgresSQL) is pre-configured:
 - Use the `Entity` attribute to mark classes for database mapping
 - Customize column properties using the `Prop` attribute's `store` parameter
 

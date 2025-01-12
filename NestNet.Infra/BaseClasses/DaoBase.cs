@@ -40,31 +40,7 @@ namespace NestNet.Infra.BaseClasses
 
         public virtual async Task<bool> Delete(int id)
         {
-            // Check if we're using in-memory database
-            if (_context.Database.ProviderName == "Microsoft.EntityFrameworkCore.InMemory")
-            {
-                var entity = await _dbSet.FindAsync(id);
-                if (entity == null)
-                {
-                    return false;
-                }
-                _dbSet.Remove(entity);
-                await _context.SaveChangesAsync();
-                return true;
-            }
-            else
-            {
-                // For SQL Server, use the atomic DELETE with ROWCOUNT
-                var tableName = _dbSet.EntityType.GetTableName();
-                var sql = $@"
-                    DELETE FROM {tableName}
-                    WHERE {_idFieldName} = @Id;
-                    SELECT @@ROWCOUNT;
-                ";
-                var rowsAffected = await _context.Database
-                    .ExecuteSqlRawAsync(sql, new SqlParameter("@Id", id));
-                return rowsAffected > 0;
-            }
+            return await DbProvidersHelper.GetDbProviderHelper().DeleteEntity(_dbSet, _idFieldName, _context, id);
         }
 
         public virtual async Task<PaginatedResult<TEntity>> GetPaginated(SafePaginationRequest request)

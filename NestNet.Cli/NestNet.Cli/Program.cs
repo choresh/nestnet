@@ -119,6 +119,7 @@ class Program
         {
             AppGenerator.Run(new AppGenerator.InputParams()
             {
+                // DbType = DbType
             });
         });
         rootCommand.AddCommand(appCommand);

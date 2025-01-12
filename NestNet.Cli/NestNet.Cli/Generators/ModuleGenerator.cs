@@ -1174,7 +1174,7 @@ namespace {context.ProjectName}.Modules.{context.PluralizedModuleName}.Tests.Ser
         public async Task GetPaginated_ReturnsPaginatedItems()
         {{
             // Arrange
-            var propertyName = ""{context.ModuleName}Id"";
+            var propertyName = ""{context.ParamName}Id"";
             var safeRequest = new SafePaginationRequest()
             {{
                 SortCriteria = new List<SortCriteria>()

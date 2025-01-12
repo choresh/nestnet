@@ -3,6 +3,8 @@ using System.Xml.Linq;
 using Spectre.Console;
 using NestNet.Cli.Infra;
 using System.Reflection;
+using NestNet.Infra.Enums;
+using System.Data;
 
 namespace NestNet.Cli.Generators
 {
@@ -10,18 +12,19 @@ namespace NestNet.Cli.Generators
     {
         public class InputParams
         {
-            // Currently - this generator not requerid any params.
+            public NestNet.Infra.Enums.DbType DbType { get; set; }
         }
 
         private class AppGenerationContext
         {
-            public AppGenerationContext(string currentDir, string projectName) {
+            public AppGenerationContext(string currentDir, string projectName, NestNet.Infra.Enums.DbType dbType) {
                 CurrentDir = currentDir;
-                ProjectName = projectName; 
-               
+                ProjectName = projectName;
+                DbType = dbType;
             }
             public string CurrentDir { get; private set; }
             public string ProjectName { get; private set; }
+            public NestNet.Infra.Enums.DbType DbType { get; private set; }
         }
 
         public static void Run(InputParams? inputParams = null)
@@ -30,24 +33,27 @@ namespace NestNet.Cli.Generators
 
             try
             {
-
+                bool goOn = false;
                 var context = CreateAppGenerationContext(inputParams);
-                var goOn = Helpers.CheckTarDir(context.CurrentDir);
-                if (goOn)
+                if (context != null)
                 {
-                    goOn = GenerateWebApiProject(context);
+                    goOn = Helpers.CheckTarDir(context.CurrentDir);
+                    if (goOn)
+                    {
+                        goOn = GenerateWebApiProject(context);
+                    }
                 }
                 if (!goOn)
                 {
                     AnsiConsole.MarkupLine(Helpers.FormatMessage("\nApp generation - ended, unable to generate the app", "green"));
                     return;
                 }
-                RemoveFsItems(context);
-                CreateFsItems(context);
-                ModifyWebApiProject(context);
+                RemoveFsItems(context!);
+                CreateFsItems(context!);
+                ModifyWebApiProject(context!);
                 AddTestPackages();
-                AddDtoGenerator(context);
-                CopyDocumentation(context.CurrentDir);
+                AddDtoGenerator(context!);
+                CopyDocumentation(context!.CurrentDir);
             }
             catch (Exception ex)
             {
@@ -58,11 +64,44 @@ namespace NestNet.Cli.Generators
             AnsiConsole.MarkupLine(Helpers.FormatMessage("\nApp generation - ended successfully", "green"));
         }
 
-        private static AppGenerationContext CreateAppGenerationContext(InputParams? inputParams = null)
+        private static AppGenerationContext? CreateAppGenerationContext(InputParams? inputParams = null)
         {
+            NestNet.Infra.Enums.DbType? dbType = null;
+            if (inputParams == null)
+            {
+                var choice = AnsiConsole.Prompt(
+                    new SelectionPrompt<string>()
+                        .Title("[green]NestNet.Cli[/] - Use arrow keys to select DB type and press Enter:")
+                        .AddChoices(new[] {
+                            "MsSql",
+                            "Postgres",
+                            "Exit"
+                        }));
+                switch (choice)
+                {
+                    case "MsSql":
+                        dbType = NestNet.Infra.Enums.DbType.MsSql;
+                        break;
+                    case "Postgres":
+                        dbType = NestNet.Infra.Enums.DbType.Postgres;
+                        break;
+                    case "Exit":
+                        break;
+                }
+            }
+            else
+            {
+                dbType = inputParams.DbType;
+            }
+
+            if (dbType == null)
+            {
+                return null;
+            }
+
             var currentDir = Directory.GetCurrentDirectory();
             var projectName = Path.GetFileName(currentDir);
-            return new AppGenerationContext(currentDir, projectName);
+            return new AppGenerationContext(currentDir, projectName, dbType.Value);
         }
 
         private static bool GenerateWebApiProject(AppGenerationContext context)
@@ -135,11 +174,17 @@ namespace NestNet.Cli.Generators
         private static void ModifyWebApiProject(AppGenerationContext context)
         {
             AnsiConsole.MarkupLine(Helpers.FormatMessage("Some capabilities (Entity Framework support, automatic registration of DAOs and Services, enhanced Swagger features) will be added to the project...", "green"));
-            RunDotNetCommand("add package Microsoft.EntityFrameworkCore.SqlServer");
+            
+            var dbRelatedContent = GetDbRelatedContent(context.DbType);
+            
+            RunDotNetCommand($"add package {dbRelatedContent.NugetsContent}");
             RunDotNetCommand("add package Microsoft.EntityFrameworkCore.Tools");
             RunDotNetCommand("add package Microsoft.EntityFrameworkCore.InMemory");
+            
             CreateApplicationDbContextFile(context);
-            UpdateProgramCs(context);
+            
+            UpdateProgramCs(context, dbRelatedContent.ConfigurationContent);
+            
             AnsiConsole.MarkupLine(Helpers.FormatMessage("Some capabilities (Entity Framework support, automatic registration of DAOs and Services, enhanced Swagger features) has been added to the project...", "green"));
         }
 
@@ -193,12 +238,43 @@ namespace NestNet.Cli.Generators
             AnsiConsole.MarkupLine(Helpers.FormatMessage("Unused folders/files has been removed\n", "green"));
         }
 
-        private static void UpdateProgramCs(AppGenerationContext context)
+        class DbRelatedContent
+        {
+            public string ConfigurationContent { get; set; }
+            public string NugetsContent { get; set; }
+
+        }
+
+        private static DbRelatedContent GetDbRelatedContent(NestNet.Infra.Enums.DbType dbType)
+        {
+            string configurationContent;
+            string nugetsContent;
+            switch (dbType)
+            {
+                case NestNet.Infra.Enums.DbType.MsSql:
+                    configurationContent = GetMsSqlConfigurationContent();
+                    nugetsContent = "Microsoft.EntityFrameworkCore.SqlServer";
+                    break;
+                case NestNet.Infra.Enums.DbType.Postgres:
+                    configurationContent = GetPostgresConfigurationContent();
+                    nugetsContent = "Npgsql.EntityFrameworkCore.PostgreSQL";
+                    break;
+                default:
+                    throw new ArgumentException($"DB type '{dbType}' not soppurted");
+            }
+            return new DbRelatedContent()
+            {
+                ConfigurationContent = configurationContent,
+                NugetsContent = nugetsContent
+            };
+        }
+
+        private static void UpdateProgramCs(AppGenerationContext context, string dbConfigurationContent)
         {
             var programCsPath = Path.Combine(context.CurrentDir, "Program.cs");
             var content = File.ReadAllText(programCsPath);
 
-            content = content.Replace("var builder = WebApplication.CreateBuilder(args);", GetProgramCsStartContent(context.ProjectName));
+            content = content.Replace("var builder = WebApplication.CreateBuilder(args);", GetProgramCsStartContent(context.ProjectName, dbConfigurationContent));
 
             content = content.Replace("builder.Services.AddSwaggerGen();", GetProgramCsMiddleContent());
 
@@ -255,7 +331,54 @@ namespace NestNet.Cli.Generators
                 });
         }
 
-        private static string GetProgramCsStartContent(string projectName)
+        private static string GetMsSqlConfigurationContent()
+        {
+            return $@"
+// Format connection string
+static string CreateConnectionString(string[] args)
+{{
+    var erver = ConfigHelper.GetConfigParam(args, ""MSSQL_SERVER"");
+    var dbName = ConfigHelper.GetConfigParam(args, ""MSSQL_DB_NAME"");
+    var user = ConfigHelper.GetConfigParam(args, ""MSSQL_USER"");
+    var password = ConfigHelper.GetConfigParam(args, ""MSSQL_PASSWORD"");
+    var trustServerCertificate = ConfigHelper.GetConfigParam(args, ""MSSQL_TRUST_SERVER_CERTIFICATE"", ""false"");
+    var trustedConnection = ConfigHelper.GetConfigParam(args, ""MSSQL_TRUSTED_CONNECTION"", ""false"");
+    var multipleActiveResultSets = ConfigHelper.GetConfigParam(args, ""MSSQL_MULTIPLE_ACTIVE_RESULT_SETS"", ""false"");
+
+    return $""Server={{erver}}; Database={{dbName}}; User Id={{user}}; Password={{password}}; TrustServerCertificate={{trustServerCertificate}}; Trusted_Connection={{trustedConnection}}; MultipleActiveResultSets={{multipleActiveResultSets}}"";
+}}
+
+// * Add Entity Framework Core.
+// * If your entities not located (only) at current assembly - customise via C'tor of 'ApplicationDbContext'.
+var connectionString = CreateConnectionString(args);
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlServer(connectionString));
+";
+        }
+
+        private static string GetPostgresConfigurationContent()
+        {
+            return $@"
+// Format connection string
+static string CreateConnectionString(string[] args)
+{{
+    var erver = ConfigHelper.GetConfigParam(args, ""POSTGRES_SERVER"");
+    var dbName = ConfigHelper.GetConfigParam(args, ""POSTGRES_DB_NAME"");
+    var user = ConfigHelper.GetConfigParam(args, ""POSTGRES_USER"");
+    var password = ConfigHelper.GetConfigParam(args, ""POSTGRES_PASSWORD"");
+
+    return $""Host={{erver}}; Database={{dbName}}; Username={{user}}; Password={{password}}"";
+}}
+
+// * Add Entity Framework Core.
+// * If your entities not located (only) at current assembly - customise via C'tor of 'ApplicationDbContext'.
+var connectionString = CreateConnectionString(args);
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseNpgsql(connectionString));
+";
+        }
+
+        private static string GetProgramCsStartContent(string projectName, string dbConfigurationContent)
         {
             return $@"using Microsoft.EntityFrameworkCore;
 using System.Reflection;
@@ -265,25 +388,7 @@ using NestNet.Infra.Swagger;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Format connection string
-static string CreateConnectionString(string[] args)
-{{
-    var dbServer = ConfigHelper.GetConfigParam(args, ""DB_SERVER"");
-    var dbName = ConfigHelper.GetConfigParam(args, ""DB_NAME"");
-    var dbUser = ConfigHelper.GetConfigParam(args, ""DB_USER"");
-    var dbPassword = ConfigHelper.GetConfigParam(args, ""DB_PASSWORD"");
-    var dbTrustServerCertificate = ConfigHelper.GetConfigParam(args, ""DB_TRUST_SERVER_CERTIFICATE"", ""false"");
-    var dbTrustedConnection = ConfigHelper.GetConfigParam(args, ""DB_TRUSTED_CONNECTION"", ""false"");
-    var dbMultipleActiveResultSets = ConfigHelper.GetConfigParam(args, ""DB_MULTIPLE_ACTIVE_RESULT_SETS"", ""false"");
-
-    return $""Server={{dbServer}}; Database={{dbName}}; User Id={{dbUser}}; Password={{dbPassword}}; TrustServerCertificate={{dbTrustServerCertificate}}; Trusted_Connection={{dbTrustedConnection}}; MultipleActiveResultSets={{dbMultipleActiveResultSets}}"";
-}}
-
-// * Add Entity Framework Core.
-// * If your entities not located (only) at current assembly - customise via C'tor of 'ApplicationDbContext'.
-var connectionString = CreateConnectionString(args);
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(connectionString));
+{dbConfigurationContent}
 
 // Support Dependency Injection for all classes with [Injectable] attribute
 // (Daos, Services, etc), within the given assembleis.
