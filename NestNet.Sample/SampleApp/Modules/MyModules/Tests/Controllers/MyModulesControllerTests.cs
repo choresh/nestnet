@@ -49,9 +49,9 @@ namespace SampleApp.Modules.MyModules.Tests.Controllers
         public async Task GetById_ReturnsOkResult_WhenItemExists()
         {
             // Arrange
-            var id = _fixture.Create<int>();
+            var id = _fixture.Create<long>();
             var expectedResult = _fixture.Create<MyModuleResultDto>();
-            _myModulesService.GetById(Arg.Any<int>()).Returns(Task.FromResult<MyModuleResultDto?>(expectedResult));
+            _myModulesService.GetById(Arg.Any<long>()).Returns(Task.FromResult<MyModuleResultDto?>(expectedResult));
 
             // Act
             var result = await _controller.GetById(id);
@@ -69,8 +69,8 @@ namespace SampleApp.Modules.MyModules.Tests.Controllers
         public async Task GetById_ReturnsNotFound_WhenItemDoesNotExist()
         {
             // Arrange
-            var id = _fixture.Create<int>();
-            _myModulesService.GetById(Arg.Any<int>()).Returns(Task.FromResult<MyModuleResultDto?>(null));
+            var id = _fixture.Create<long>();
+            _myModulesService.GetById(Arg.Any<long>()).Returns(Task.FromResult<MyModuleResultDto?>(null));
 
             // Act
             var result = await _controller.GetById(id);
@@ -88,7 +88,7 @@ namespace SampleApp.Modules.MyModules.Tests.Controllers
         public async Task Create_ReturnsCreatedResult_WithNewItem()
         {
             // Arrange
-            var id = _fixture.Create<int>();
+            var id = _fixture.Create<long>();
             var createDto = _fixture.Create<MyModuleCreateDto>();
             var expectedResult = _fixture.Create<MyModuleResultDto>();
             var internalCreateResult = new InternalCreateResult<MyModuleResultDto>
@@ -115,10 +115,10 @@ namespace SampleApp.Modules.MyModules.Tests.Controllers
         {
             // Arrange
             var ignoreMissingOrNullFields = true;
-            var id = _fixture.Create<int>();
+            var id = _fixture.Create<long>();
             var updateDto = _fixture.Create<MyModuleUpdateDto>();
             var expectedResult = _fixture.Create<MyModuleResultDto>();
-            _myModulesService.Update(Arg.Any<int>(), Arg.Any<MyModuleUpdateDto>(), Arg.Any<bool>()).Returns(Task.FromResult<MyModuleResultDto?>(expectedResult));
+            _myModulesService.Update(Arg.Any<long>(), Arg.Any<MyModuleUpdateDto>(), Arg.Any<bool>()).Returns(Task.FromResult<MyModuleResultDto?>(expectedResult));
 
             // Act
             var result = await _controller.Update(id, updateDto, ignoreMissingOrNullFields);
@@ -137,9 +137,9 @@ namespace SampleApp.Modules.MyModules.Tests.Controllers
         {
             // Arrange
             var ignoreMissingOrNullFields = true;
-            var id = _fixture.Create<int>();
+            var id = _fixture.Create<long>();
             var updateDto = _fixture.Create<MyModuleUpdateDto>();
-            _myModulesService.Update(Arg.Any<int>(), Arg.Any<MyModuleUpdateDto>(), Arg.Any<bool>()).Returns(Task.FromResult<MyModuleResultDto?>(null));
+            _myModulesService.Update(Arg.Any<long>(), Arg.Any<MyModuleUpdateDto>(), Arg.Any<bool>()).Returns(Task.FromResult<MyModuleResultDto?>(null));
          
             // Act
             var result = await _controller.Update(id, updateDto, ignoreMissingOrNullFields);
@@ -158,10 +158,10 @@ namespace SampleApp.Modules.MyModules.Tests.Controllers
         {
             // Arrange
             var ignoreMissingOrNullFields = false;
-            var id = _fixture.Create<int>();
+            var id = _fixture.Create<long>();
             var updateDto = _fixture.Create<MyModuleUpdateDto>();
             var expectedResult = _fixture.Create<MyModuleResultDto>();
-            _myModulesService.Update(Arg.Any<int>(), Arg.Any<MyModuleUpdateDto>(), Arg.Any<bool>()).Returns(Task.FromResult<MyModuleResultDto?>(expectedResult));
+            _myModulesService.Update(Arg.Any<long>(), Arg.Any<MyModuleUpdateDto>(), Arg.Any<bool>()).Returns(Task.FromResult<MyModuleResultDto?>(expectedResult));
 
             // Act
             var result = await _controller.Update(id, updateDto, ignoreMissingOrNullFields);
@@ -180,9 +180,9 @@ namespace SampleApp.Modules.MyModules.Tests.Controllers
         {
             // Arrange
             var ignoreMissingOrNullFields = false;
-            var id = _fixture.Create<int>();
+            var id = _fixture.Create<long>();
             var updateDto = _fixture.Create<MyModuleUpdateDto>();
-            _myModulesService.Update(Arg.Any<int>(), Arg.Any<MyModuleUpdateDto>(), Arg.Any<bool>()).Returns(Task.FromResult<MyModuleResultDto?>(null));
+            _myModulesService.Update(Arg.Any<long>(), Arg.Any<MyModuleUpdateDto>(), Arg.Any<bool>()).Returns(Task.FromResult<MyModuleResultDto?>(null));
          
             // Act
             var result = await _controller.Update(id, updateDto, ignoreMissingOrNullFields);
@@ -200,8 +200,8 @@ namespace SampleApp.Modules.MyModules.Tests.Controllers
         public async Task Delete_ReturnsNoContent_WhenDeleteSuccessful()
         {
             // Arrange
-            var id = _fixture.Create<int>();
-            _myModulesService.Delete(Arg.Any<int>()).Returns(Task.FromResult(true));
+            var id = _fixture.Create<long>();
+            _myModulesService.Delete(Arg.Any<long>()).Returns(Task.FromResult(true));
 
             // Act
             var result = await _controller.Delete(id);
@@ -217,8 +217,8 @@ namespace SampleApp.Modules.MyModules.Tests.Controllers
         public async Task Delete_ReturnsNotFound_WhenItemDoesNotExist()
         {
             // Arrange
-            var id = _fixture.Create<int>();
-            _myModulesService.Delete(Arg.Any<int>()).Returns(Task.FromResult(false));
+            var id = _fixture.Create<long>();
+            _myModulesService.Delete(Arg.Any<long>()).Returns(Task.FromResult(false));
 
             // Act
             var result = await _controller.Delete(id);
@@ -373,7 +373,7 @@ namespace SampleApp.Modules.MyModules.Tests.Controllers
         public async Task GetMeta_ReturnsCorrectMetadata()
         {
             // Arrange
-            var count = _fixture.Create<int>();
+            var count = _fixture.Create<long>();
             _myModulesService.GetMeta(Arg.Any<FindManyArgs<Entities.MyModule, MyModuleQueryDto>>()).Returns(Task.FromResult(new MetadataDto() { Count = count }));
             var filter = new FindManyArgs<Entities.MyModule, MyModuleQueryDto>()
             {

@@ -27,7 +27,7 @@ namespace NestNet.Infra.BaseClasses
             return await _dbSet.ToListAsync();
         }
 
-        public virtual async Task<TEntity?> GetById(int id)
+        public virtual async Task<TEntity?> GetById(long id)
         {
             return await _dbSet.FindAsync(id);
         }
@@ -38,7 +38,7 @@ namespace NestNet.Infra.BaseClasses
             await _context.SaveChangesAsync();
         }
 
-        public virtual async Task<bool> Delete(int id)
+        public virtual async Task<bool> Delete(long id)
         {
             return await DbProvidersHelper.GetDbProviderHelper().DeleteEntity(_dbSet, _idFieldName, _context, id);
         }
@@ -153,7 +153,7 @@ namespace NestNet.Infra.BaseClasses
             return result;
         }
 
-        public virtual async Task<TEntity?> Update<TUpdateDto>(int id, TUpdateDto updateDto, bool ignoreMissingOrNullFields)
+        public virtual async Task<TEntity?> Update<TUpdateDto>(long id, TUpdateDto updateDto, bool ignoreMissingOrNullFields)
         {
             // Get all properties if not ignoring missing fields, otherwise only non-null properties
             var modifiedProperties = typeof(TUpdateDto).GetProperties()

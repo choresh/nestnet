@@ -22,7 +22,7 @@ namespace NestNet.Infra.Helpers
                DbSet<TEntity> dbSet,
                string idFieldName,
                DbContext context,
-               int id,
+               long id,
                TUpdateDto updateDto,
                List<System.Reflection.PropertyInfo> modifiedProperties
             ) where TEntity : class;
@@ -31,7 +31,7 @@ namespace NestNet.Infra.Helpers
                DbSet<TEntity> dbSet,
                string idFieldName,
                DbContext context,
-               int id
+               long id
                ) where TEntity : class;
         }
 
@@ -41,7 +41,7 @@ namespace NestNet.Infra.Helpers
                 DbSet<TEntity> dbSet,
                 string idFieldName,
                 DbContext context,
-                int id
+                long id
                 ) where TEntity : class
             {
                 var entity = await dbSet.FindAsync(id);
@@ -72,7 +72,7 @@ namespace NestNet.Infra.Helpers
                 DbSet<TEntity> dbSet,
                 string idFieldName,
                 DbContext context,
-                int id,
+                long id,
                 TUpdateDto updateDto,
                 List<System.Reflection.PropertyInfo> modifiedProperties
                 ) where TEntity : class
@@ -102,7 +102,7 @@ namespace NestNet.Infra.Helpers
                DbSet<TEntity> dbSet,
                string idFieldName,
                DbContext context,
-               int id
+               long id
                ) where TEntity : class
             {
                 var tableName = dbSet.EntityType.GetTableName();
@@ -137,7 +137,7 @@ namespace NestNet.Infra.Helpers
                 DbSet<TEntity> dbSet,
                 string idFieldName,
                 DbContext context,
-                int id,
+                long id,
                 TUpdateDto updateDto,
                 List<System.Reflection.PropertyInfo> modifiedProperties
                 ) where TEntity: class
@@ -175,7 +175,7 @@ namespace NestNet.Infra.Helpers
                 DbSet<TEntity> dbSet,
                 string idFieldName,
                 DbContext context,
-                int id
+                long id
                 ) where TEntity : class
             {
                 var quotes = GetDbProviderHelper().GetQuotes();
@@ -211,7 +211,7 @@ namespace NestNet.Infra.Helpers
                 DbSet<TEntity> dbSet,
                 string idFieldName,
                 DbContext context,
-                int id,
+                long id,
                 TUpdateDto updateDto,
                 List<System.Reflection.PropertyInfo> modifiedProperties
                 ) where TEntity : class

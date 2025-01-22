@@ -60,7 +60,7 @@ namespace NestNet.Infra.BaseClasses
             return ToResultDtos(entities);
         }
 
-        public virtual async Task<TResultDto?> GetById(int id)
+        public virtual async Task<TResultDto?> GetById(long id)
         {
             var entity = await _dao.GetById(id);
             return ToResultDto(entity);
@@ -77,7 +77,7 @@ namespace NestNet.Infra.BaseClasses
             };
         }
 
-        public virtual async Task<TResultDto?> Update(int id, TUpdateDto updateDto, bool ignoreMissingOrNullFields)
+        public virtual async Task<TResultDto?> Update(long id, TUpdateDto updateDto, bool ignoreMissingOrNullFields)
         {
             var entity = await _dao.Update(id, updateDto, ignoreMissingOrNullFields);
             if (entity == null)
@@ -90,7 +90,7 @@ namespace NestNet.Infra.BaseClasses
             }
         }
 
-        public virtual async Task<bool> Delete(int id)
+        public virtual async Task<bool> Delete(long id)
         {
             return await _dao.Delete(id);
         }

@@ -4,7 +4,7 @@ namespace NestNet.Infra.BaseClasses
 {
     public abstract class EntityBase : IEntity
     {
-        public abstract int Id { get; set; }
+        public abstract long Id { get; set; }
 
         [Prop(
            create: GenOpt.Ignore,

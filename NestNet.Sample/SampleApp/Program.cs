@@ -10,22 +10,19 @@ var builder = WebApplication.CreateBuilder(args);
 // Format connection string
 static string CreateConnectionString(string[] args)
 {
-    var erver = ConfigHelper.GetConfigParam(args, "MSSQL_SERVER");
-    var dbName = ConfigHelper.GetConfigParam(args, "MSSQL_DB_NAME");
-    var user = ConfigHelper.GetConfigParam(args, "MSSQL_USER");
-    var password = ConfigHelper.GetConfigParam(args, "MSSQL_PASSWORD");
-    var trustServerCertificate = ConfigHelper.GetConfigParam(args, "MSSQL_TRUST_SERVER_CERTIFICATE", "false");
-    var trustedConnection = ConfigHelper.GetConfigParam(args, "MSSQL_TRUSTED_CONNECTION", "false");
-    var multipleActiveResultSets = ConfigHelper.GetConfigParam(args, "MSSQL_MULTIPLE_ACTIVE_RESULT_SETS", "false");
+    var erver = ConfigHelper.GetConfigParam(args, "POSTGRES_SERVER");
+    var dbName = ConfigHelper.GetConfigParam(args, "POSTGRES_DB_NAME");
+    var user = ConfigHelper.GetConfigParam(args, "POSTGRES_USER");
+    var password = ConfigHelper.GetConfigParam(args, "POSTGRES_PASSWORD");
 
-    return $"Server={erver}; Database={dbName}; User Id={user}; Password={password}; TrustServerCertificate={trustServerCertificate}; Trusted_Connection={trustedConnection}; MultipleActiveResultSets={multipleActiveResultSets}";
+    return $"Host={erver}; Database={dbName}; Username={user}; Password={password}";
 }
 
 // * Add Entity Framework Core.
 // * If your entities not located (only) at current assembly - customise via C'tor of 'ApplicationDbContext'.
 var connectionString = CreateConnectionString(args);
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(connectionString));
+    options.UseNpgsql(connectionString));
 
 
 // Support Dependency Injection for all classes with [Injectable] attribute

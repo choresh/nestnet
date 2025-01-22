@@ -88,7 +88,7 @@ namespace SampleApp.Modules.MyModules.Tests.Daos
         public async Task GetById_ReturnsNull_WhenNotExists()
         {
             // Arrange
-            var id = _fixture.Create<int>();
+            var id = _fixture.Create<long>();
           
             // Act
             var result = await _dao.GetById(id);
@@ -135,7 +135,7 @@ namespace SampleApp.Modules.MyModules.Tests.Daos
         {
             // Arrange
             var ignoreMissingOrNullFields = true;
-            var id = _fixture.Create<int>();
+            var id = _fixture.Create<long>();
             var updateDto = _fixture.Create<MyModuleUpdateDto>();
 
             // Act
@@ -167,7 +167,7 @@ namespace SampleApp.Modules.MyModules.Tests.Daos
         {
             // Arrange
             var ignoreMissingOrNullFields = false;
-            var id = _fixture.Create<int>();
+            var id = _fixture.Create<long>();
             var updateDto = _fixture.Create<MyModuleUpdateDto>();
 
             // Act
@@ -195,7 +195,7 @@ namespace SampleApp.Modules.MyModules.Tests.Daos
         public async Task Delete_ReturnsFalse_WhenNotExists()
         {
             // Arrange
-            var id = _fixture.Create<int>();
+            var id = _fixture.Create<long>();
      
             // Act
             var found = await _dao.Delete(id);

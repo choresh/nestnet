@@ -14,7 +14,7 @@ namespace SampleApp.Modules.MyModules.Entities
             result: GenOpt.Ignore,
             store: DbOpt.Ignore
         )]
-        public override int Id
+        public override long Id
         {
             get { return MyModuleId; }
             set { MyModuleId = value; }
@@ -27,7 +27,7 @@ namespace SampleApp.Modules.MyModules.Entities
             result: GenOpt.Mandatory,
             store: DbOpt.PrimaryKey
         )]
-        public int MyModuleId { get; set; }
+        public long MyModuleId { get; set; }
 
         [Prop(
             create: GenOpt.Mandatory,
@@ -43,7 +43,7 @@ namespace SampleApp.Modules.MyModules.Entities
             result: GenOpt.Mandatory,
             store: DbOpt.Standard
         )]
-        public int Age { get; set; }
+        public long Age { get; set; }
 
         [Prop(
             create: GenOpt.Optional,

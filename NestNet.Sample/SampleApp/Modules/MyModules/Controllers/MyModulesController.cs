@@ -21,7 +21,7 @@ namespace SampleApp.Modules.MyModules.Controllers
         }
 
         [HttpGet("{myModuleId}")]
-        public override async Task<ActionResult<MyModuleResultDto>> GetById(int myModuleId)
+        public override async Task<ActionResult<MyModuleResultDto>> GetById(long myModuleId)
         {
             return await base.GetById(myModuleId);
         }
@@ -33,13 +33,13 @@ namespace SampleApp.Modules.MyModules.Controllers
         }
 
         [HttpPut("{myModuleId}")]
-        public override async Task<ActionResult<MyModuleResultDto>> Update(int myModuleId, MyModuleUpdateDto myModule, bool ignoreMissingOrNullFields)
+        public override async Task<ActionResult<MyModuleResultDto>> Update(long myModuleId, MyModuleUpdateDto myModule, bool ignoreMissingOrNullFields)
         {
             return await base.Update(myModuleId, myModule, ignoreMissingOrNullFields);
         }
 
         [HttpDelete("{myModuleId}")]
-        public override async Task<IActionResult> Delete(int myModuleId)
+        public override async Task<IActionResult> Delete(long myModuleId)
         {
             return await base.Delete(myModuleId);
         }

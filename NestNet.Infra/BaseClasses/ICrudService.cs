@@ -6,17 +6,17 @@ namespace NestNet.Infra.BaseClasses
     public class InternalCreateResult<TResultDto>
     {
         public required TResultDto ResultDto { get; set; }
-        public int Id { get; set; }
+        public long Id { get; set; }
     }
 
     public interface ICrudService<TEntity, TCreateDto, TUpdateDto, TResultDto, TQueryDto> where TQueryDto : class
     {
         Task<InternalCreateResult<TResultDto>> Create(TCreateDto createDto);
-        Task<bool> Delete(int id);
+        Task<bool> Delete(long id);
         Task<IEnumerable<TResultDto>> GetAll();
-        Task<TResultDto?> GetById(int id);
+        Task<TResultDto?> GetById(long id);
         Task<DataWithOptionalError<PaginatedResult<TResultDto>>> GetPaginated(UnsafePaginationRequest request);
-        Task<TResultDto?> Update(int id, TUpdateDto updateDto, bool ignoreMissingOrNullFields);
+        Task<TResultDto?> Update(long id, TUpdateDto updateDto, bool ignoreMissingOrNullFields);
         Task<IEnumerable<TResultDto>> GetMany(FindManyArgs<TEntity, TQueryDto> filter);
         Task<MetadataDto> GetMeta(FindManyArgs<TEntity, TQueryDto> filter);
     }

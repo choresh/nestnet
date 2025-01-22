@@ -7,9 +7,9 @@ namespace SampleApp.Modules.MyModules.Dtos
     /// </summary>
     public class MyModuleQueryDto
     {
-		public Int32? MyModuleId { get; set; }
+		public Int64? MyModuleId { get; set; }
 		public String? Name { get; set; }
-		public Int32? Age { get; set; }
+		public Int64? Age { get; set; }
 		public String? Email { get; set; }
 		public DateTime? CreatedAt { get; set; }
 		public DateTime? UpdatedAt { get; set; }

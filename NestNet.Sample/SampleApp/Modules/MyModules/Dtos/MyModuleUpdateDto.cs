@@ -8,7 +8,7 @@ namespace SampleApp.Modules.MyModules.Dtos
     public class MyModuleUpdateDto
     {
 		public String? Name { get; set; }
-		public Int32? Age { get; set; }
+		public Int64? Age { get; set; }
 		public String? Email { get; set; }
     }
 }

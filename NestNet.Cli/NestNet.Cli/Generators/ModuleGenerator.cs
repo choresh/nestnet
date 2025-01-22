@@ -70,8 +70,8 @@ namespace NestNet.Cli.Generators
                 }
                 else
                 {
-                    // Interactive mode
-                    context = CreateInteractiveModuleGenerationContext();
+                    // longeractive mode
+                    context = CreatelongeractiveModuleGenerationContext();
                 }
                 if (context == null || !Helpers.CheckTarDir(context.ModulePath))
                 {
@@ -126,7 +126,7 @@ namespace NestNet.Cli.Generators
             };
         }
 
-        private static ModuleGenerationContext? CreateInteractiveModuleGenerationContext()
+        private static ModuleGenerationContext? CreatelongeractiveModuleGenerationContext()
         {
             string moduleName = GetModuleName();
             var (currentDir, projectName) = Helpers.GetProjectInfo();
@@ -252,12 +252,12 @@ namespace NestNet.Cli.Generators
             {
                 case DtoType.Result:
                     properties = $@"
-        public int {context.ModuleName}Id {{ get; set; }}
+        public long {context.ModuleName}Id {{ get; set; }}
 ";
             break;
                 case DtoType.Query:
                     properties = $@"
-        public int? {context.ModuleName}Id {{ get; set; }}
+        public long? {context.ModuleName}Id {{ get; set; }}
 ";
                     break;
                 default:
@@ -368,7 +368,7 @@ namespace {context.ProjectName}.Modules.{context.PluralizedModuleName}.Entities
             result: GenOpt.Ignore,
             store: DbOpt.Ignore
         )]
-        public override int Id
+        public override long Id
         {{
             get {{ return {context.ModuleName}Id; }}
             set {{ {context.ModuleName}Id = value; }}
@@ -381,7 +381,7 @@ namespace {context.ProjectName}.Modules.{context.PluralizedModuleName}.Entities
             result: GenOpt.Mandatory,
             store: DbOpt.PrimaryKey
         )]
-        public int {context.ModuleName}Id {{ get; set; }}
+        public long {context.ModuleName}Id {{ get; set; }}
 
         [Prop(
             create: GenOpt.Mandatory,
@@ -397,7 +397,7 @@ namespace {context.ProjectName}.Modules.{context.PluralizedModuleName}.Entities
             result: GenOpt.Mandatory,
             store: DbOpt.Standard
         )]
-        public int Age {{ get; set; }}
+        public long Age {{ get; set; }}
 
         [Prop(
             create: GenOpt.Optional,
@@ -525,7 +525,7 @@ namespace {context.ProjectName}.Modules.{context.PluralizedModuleName}.Controlle
         }}
 
         [HttpGet(""{{{context.ParamName}Id}}"")]
-        public override async Task<ActionResult<{context.ResultDtoName}>> GetById(int {context.ParamName}Id)
+        public override async Task<ActionResult<{context.ResultDtoName}>> GetById(long {context.ParamName}Id)
         {{
             return await base.GetById({context.ParamName}Id);
         }}
@@ -537,13 +537,13 @@ namespace {context.ProjectName}.Modules.{context.PluralizedModuleName}.Controlle
         }}
 
         [HttpPut(""{{{context.ParamName}Id}}"")]
-        public override async Task<ActionResult<{context.ResultDtoName}>> Update(int {context.ParamName}Id, {context.UpdateDtoName} {context.ParamName}, bool ignoreMissingOrNullFields)
+        public override async Task<ActionResult<{context.ResultDtoName}>> Update(long {context.ParamName}Id, {context.UpdateDtoName} {context.ParamName}, bool ignoreMissingOrNullFields)
         {{
             return await base.Update({context.ParamName}Id, {context.ParamName}, ignoreMissingOrNullFields);
         }}
 
         [HttpDelete(""{{{context.ParamName}Id}}"")]
-        public override async Task<IActionResult> Delete(int {context.ParamName}Id)
+        public override async Task<IActionResult> Delete(long {context.ParamName}Id)
         {{
             return await base.Delete({context.ParamName}Id);
         }}
@@ -613,9 +613,9 @@ namespace {context.ProjectName}.Modules.{context.PluralizedModuleName}.Tests.Con
         public async Task GetById_ReturnsOkResult_WhenItemExists()
         {{
             // Arrange
-            var id = _fixture.Create<int>();
+            var id = _fixture.Create<long>();
             var expectedResult = _fixture.Create<{context.ResultDtoName}>();
-            _{context.PluralizedParamName}Service.GetById(Arg.Any<int>()).Returns(Task.FromResult<{context.ResultDtoName}?>(expectedResult));
+            _{context.PluralizedParamName}Service.GetById(Arg.Any<long>()).Returns(Task.FromResult<{context.ResultDtoName}?>(expectedResult));
 
             // Act
             var result = await _controller.GetById(id);
@@ -633,8 +633,8 @@ namespace {context.ProjectName}.Modules.{context.PluralizedModuleName}.Tests.Con
         public async Task GetById_ReturnsNotFound_WhenItemDoesNotExist()
         {{
             // Arrange
-            var id = _fixture.Create<int>();
-            _{context.PluralizedParamName}Service.GetById(Arg.Any<int>()).Returns(Task.FromResult<{context.ResultDtoName}?>(null));
+            var id = _fixture.Create<long>();
+            _{context.PluralizedParamName}Service.GetById(Arg.Any<long>()).Returns(Task.FromResult<{context.ResultDtoName}?>(null));
 
             // Act
             var result = await _controller.GetById(id);
@@ -652,7 +652,7 @@ namespace {context.ProjectName}.Modules.{context.PluralizedModuleName}.Tests.Con
         public async Task Create_ReturnsCreatedResult_WithNewItem()
         {{
             // Arrange
-            var id = _fixture.Create<int>();
+            var id = _fixture.Create<long>();
             var createDto = _fixture.Create<{context.CreateDtoName}>();
             var expectedResult = _fixture.Create<{context.ResultDtoName}>();
             var internalCreateResult = new InternalCreateResult<{context.ResultDtoName}>
@@ -679,10 +679,10 @@ namespace {context.ProjectName}.Modules.{context.PluralizedModuleName}.Tests.Con
         {{
             // Arrange
             var ignoreMissingOrNullFields = true;
-            var id = _fixture.Create<int>();
+            var id = _fixture.Create<long>();
             var updateDto = _fixture.Create<{context.UpdateDtoName}>();
             var expectedResult = _fixture.Create<{context.ResultDtoName}>();
-            _{context.PluralizedParamName}Service.Update(Arg.Any<int>(), Arg.Any<{context.UpdateDtoName}>(), Arg.Any<bool>()).Returns(Task.FromResult<{context.ResultDtoName}?>(expectedResult));
+            _{context.PluralizedParamName}Service.Update(Arg.Any<long>(), Arg.Any<{context.UpdateDtoName}>(), Arg.Any<bool>()).Returns(Task.FromResult<{context.ResultDtoName}?>(expectedResult));
 
             // Act
             var result = await _controller.Update(id, updateDto, ignoreMissingOrNullFields);
@@ -701,9 +701,9 @@ namespace {context.ProjectName}.Modules.{context.PluralizedModuleName}.Tests.Con
         {{
             // Arrange
             var ignoreMissingOrNullFields = true;
-            var id = _fixture.Create<int>();
+            var id = _fixture.Create<long>();
             var updateDto = _fixture.Create<{context.UpdateDtoName}>();
-            _{context.PluralizedParamName}Service.Update(Arg.Any<int>(), Arg.Any<{context.UpdateDtoName}>(), Arg.Any<bool>()).Returns(Task.FromResult<{context.ResultDtoName}?>(null));
+            _{context.PluralizedParamName}Service.Update(Arg.Any<long>(), Arg.Any<{context.UpdateDtoName}>(), Arg.Any<bool>()).Returns(Task.FromResult<{context.ResultDtoName}?>(null));
          
             // Act
             var result = await _controller.Update(id, updateDto, ignoreMissingOrNullFields);
@@ -722,10 +722,10 @@ namespace {context.ProjectName}.Modules.{context.PluralizedModuleName}.Tests.Con
         {{
             // Arrange
             var ignoreMissingOrNullFields = false;
-            var id = _fixture.Create<int>();
+            var id = _fixture.Create<long>();
             var updateDto = _fixture.Create<{context.UpdateDtoName}>();
             var expectedResult = _fixture.Create<{context.ResultDtoName}>();
-            _{context.PluralizedParamName}Service.Update(Arg.Any<int>(), Arg.Any<{context.UpdateDtoName}>(), Arg.Any<bool>()).Returns(Task.FromResult<{context.ResultDtoName}?>(expectedResult));
+            _{context.PluralizedParamName}Service.Update(Arg.Any<long>(), Arg.Any<{context.UpdateDtoName}>(), Arg.Any<bool>()).Returns(Task.FromResult<{context.ResultDtoName}?>(expectedResult));
 
             // Act
             var result = await _controller.Update(id, updateDto, ignoreMissingOrNullFields);
@@ -744,9 +744,9 @@ namespace {context.ProjectName}.Modules.{context.PluralizedModuleName}.Tests.Con
         {{
             // Arrange
             var ignoreMissingOrNullFields = false;
-            var id = _fixture.Create<int>();
+            var id = _fixture.Create<long>();
             var updateDto = _fixture.Create<{context.UpdateDtoName}>();
-            _{context.PluralizedParamName}Service.Update(Arg.Any<int>(), Arg.Any<{context.UpdateDtoName}>(), Arg.Any<bool>()).Returns(Task.FromResult<{context.ResultDtoName}?>(null));
+            _{context.PluralizedParamName}Service.Update(Arg.Any<long>(), Arg.Any<{context.UpdateDtoName}>(), Arg.Any<bool>()).Returns(Task.FromResult<{context.ResultDtoName}?>(null));
          
             // Act
             var result = await _controller.Update(id, updateDto, ignoreMissingOrNullFields);
@@ -764,8 +764,8 @@ namespace {context.ProjectName}.Modules.{context.PluralizedModuleName}.Tests.Con
         public async Task Delete_ReturnsNoContent_WhenDeleteSuccessful()
         {{
             // Arrange
-            var id = _fixture.Create<int>();
-            _{context.PluralizedParamName}Service.Delete(Arg.Any<int>()).Returns(Task.FromResult(true));
+            var id = _fixture.Create<long>();
+            _{context.PluralizedParamName}Service.Delete(Arg.Any<long>()).Returns(Task.FromResult(true));
 
             // Act
             var result = await _controller.Delete(id);
@@ -781,8 +781,8 @@ namespace {context.ProjectName}.Modules.{context.PluralizedModuleName}.Tests.Con
         public async Task Delete_ReturnsNotFound_WhenItemDoesNotExist()
         {{
             // Arrange
-            var id = _fixture.Create<int>();
-            _{context.PluralizedParamName}Service.Delete(Arg.Any<int>()).Returns(Task.FromResult(false));
+            var id = _fixture.Create<long>();
+            _{context.PluralizedParamName}Service.Delete(Arg.Any<long>()).Returns(Task.FromResult(false));
 
             // Act
             var result = await _controller.Delete(id);
@@ -937,7 +937,7 @@ namespace {context.ProjectName}.Modules.{context.PluralizedModuleName}.Tests.Con
         public async Task GetMeta_ReturnsCorrectMetadata()
         {{
             // Arrange
-            var count = _fixture.Create<int>();
+            var count = _fixture.Create<long>();
             _{context.PluralizedParamName}Service.GetMeta(Arg.Any<FindManyArgs<{context.EntityFullName}, {context.QueryDtoName}>>()).Returns(Task.FromResult(new MetadataDto() {{ Count = count }}));
             var filter = new FindManyArgs<{context.EntityFullName}, {context.QueryDtoName}>()
             {{
@@ -1014,10 +1014,10 @@ namespace {context.ProjectName}.Modules.{context.PluralizedModuleName}.Tests.Ser
         public async Task GetById_ReturnsItem_WhenExists()
         {{
             // Arrange
-            var id = _fixture.Create<int>();
+            var id = _fixture.Create<long>();
             var entity = _fixture.Create<{context.EntityFullName}>();
             var expectedResult = _service.ToResultDto(entity);
-            _{context.ParamName}Dao.GetById(Arg.Any<int>()).Returns(Task.FromResult<{context.EntityFullName}?>(entity));
+            _{context.ParamName}Dao.GetById(Arg.Any<long>()).Returns(Task.FromResult<{context.EntityFullName}?>(entity));
 
             // Act
             var result = await _service.GetById(id);
@@ -1033,8 +1033,8 @@ namespace {context.ProjectName}.Modules.{context.PluralizedModuleName}.Tests.Ser
         public async Task GetById_ReturnsNull_WhenNotExists()
         {{
             // Arrange
-            var id = _fixture.Create<int>();
-            _{context.ParamName}Dao.GetById(Arg.Any<int>()).Returns(Task.FromResult<{context.EntityFullName}?>(null));
+            var id = _fixture.Create<long>();
+            _{context.ParamName}Dao.GetById(Arg.Any<long>()).Returns(Task.FromResult<{context.EntityFullName}?>(null));
 
             // Act
             var result = await _service.GetById(id);
@@ -1068,11 +1068,11 @@ namespace {context.ProjectName}.Modules.{context.PluralizedModuleName}.Tests.Ser
         {{
             // Arrange
             var ignoreMissingOrNullFields = true;
-            var id = _fixture.Create<int>();
+            var id = _fixture.Create<long>();
             var updateDto = _fixture.Create<{context.UpdateDtoName}>();
             var updatedEntity = _service.ToEntity(updateDto);
             var expectedResult = _service.ToResultDto(updatedEntity);           
-            _{context.ParamName}Dao.Update(Arg.Any<int>(), Arg.Any<{context.UpdateDtoName}>(), Arg.Any<bool>()).Returns(Task.FromResult<{context.EntityFullName}?>(updatedEntity));
+            _{context.ParamName}Dao.Update(Arg.Any<long>(), Arg.Any<{context.UpdateDtoName}>(), Arg.Any<bool>()).Returns(Task.FromResult<{context.EntityFullName}?>(updatedEntity));
             
             // Act
             var result = await _service.Update(id, updateDto, ignoreMissingOrNullFields);
@@ -1089,9 +1089,9 @@ namespace {context.ProjectName}.Modules.{context.PluralizedModuleName}.Tests.Ser
         {{
             // Arrange
             var ignoreMissingOrNullFields = true;
-            var id = _fixture.Create<int>();
+            var id = _fixture.Create<long>();
             var updateDto = _fixture.Create<{context.UpdateDtoName}>();
-            _{context.ParamName}Dao.Update(Arg.Any<int>(), Arg.Any<{context.UpdateDtoName}>(), Arg.Any<bool>()).Returns(Task.FromResult<{context.EntityFullName}?>(null));
+            _{context.ParamName}Dao.Update(Arg.Any<long>(), Arg.Any<{context.UpdateDtoName}>(), Arg.Any<bool>()).Returns(Task.FromResult<{context.EntityFullName}?>(null));
 
             // Act
             var result = await _service.Update(id, updateDto, ignoreMissingOrNullFields);
@@ -1106,11 +1106,11 @@ namespace {context.ProjectName}.Modules.{context.PluralizedModuleName}.Tests.Ser
         {{
             // Arrange
             var ignoreMissingOrNullFields = false;
-            var id = _fixture.Create<int>();
+            var id = _fixture.Create<long>();
             var updateDto = _fixture.Create<{context.UpdateDtoName}>();
             var updatedEntity = _service.ToEntity(updateDto);
             var expectedResult = _service.ToResultDto(updatedEntity);           
-            _{context.ParamName}Dao.Update(Arg.Any<int>(), Arg.Any<{context.UpdateDtoName}>(), Arg.Any<bool>()).Returns(Task.FromResult<{context.EntityFullName}?>(updatedEntity));
+            _{context.ParamName}Dao.Update(Arg.Any<long>(), Arg.Any<{context.UpdateDtoName}>(), Arg.Any<bool>()).Returns(Task.FromResult<{context.EntityFullName}?>(updatedEntity));
             
             // Act
             var result = await _service.Update(id, updateDto, ignoreMissingOrNullFields);
@@ -1127,9 +1127,9 @@ namespace {context.ProjectName}.Modules.{context.PluralizedModuleName}.Tests.Ser
         {{
             // Arrange
             var ignoreMissingOrNullFields = false;
-            var id = _fixture.Create<int>();
+            var id = _fixture.Create<long>();
             var updateDto = _fixture.Create<{context.UpdateDtoName}>();
-            _{context.ParamName}Dao.Update(Arg.Any<int>(), Arg.Any<{context.UpdateDtoName}>(), Arg.Any<bool>()).Returns(Task.FromResult<{context.EntityFullName}?>(null));
+            _{context.ParamName}Dao.Update(Arg.Any<long>(), Arg.Any<{context.UpdateDtoName}>(), Arg.Any<bool>()).Returns(Task.FromResult<{context.EntityFullName}?>(null));
 
             // Act
             var result = await _service.Update(id, updateDto, ignoreMissingOrNullFields);
@@ -1143,9 +1143,9 @@ namespace {context.ProjectName}.Modules.{context.PluralizedModuleName}.Tests.Ser
         public async Task Delete_ReturnsTrue_WhenExists()
         {{
             // Arrange
-            var id = _fixture.Create<int>();
+            var id = _fixture.Create<long>();
             var entity = _fixture.Create<{context.EntityFullName}>();
-            _{context.ParamName}Dao.Delete(Arg.Any<int>()).Returns(Task.FromResult(true));
+            _{context.ParamName}Dao.Delete(Arg.Any<long>()).Returns(Task.FromResult(true));
 
             // Act
             var found = await _service.Delete(id);
@@ -1159,8 +1159,8 @@ namespace {context.ProjectName}.Modules.{context.PluralizedModuleName}.Tests.Ser
         public async Task Delete_ReturnsFalse_WhenNotExists()
         {{
             // Arrange
-            var id = _fixture.Create<int>();
-            _{context.ParamName}Dao.Delete(Arg.Any<int>()).Returns(Task.FromResult(false));
+            var id = _fixture.Create<long>();
+            _{context.ParamName}Dao.Delete(Arg.Any<long>()).Returns(Task.FromResult(false));
 
             // Act
              var found = await _service.Delete(id);
@@ -1468,7 +1468,7 @@ namespace {context.ProjectName}.Modules.{context.PluralizedModuleName}.Tests.Ser
         public async Task GetMeta_ReturnsCorrectMetadata()
         {{
             // Arrange
-            var count = _fixture.Create<int>();
+            var count = _fixture.Create<long>();
             _{context.ParamName}Dao.GetMeta(Arg.Any<FindManyArgs<{context.EntityFullName}, {context.QueryDtoName}>>()).Returns(Task.FromResult(new MetadataDto() {{ Count = count}}));
             var filter = new FindManyArgs<{context.EntityFullName}, {context.QueryDtoName}>()
             {{
@@ -1582,7 +1582,7 @@ namespace {context.ProjectName}.Modules.{context.PluralizedModuleName}.Tests.Dao
         public async Task GetById_ReturnsNull_WhenNotExists()
         {{
             // Arrange
-            var id = _fixture.Create<int>();
+            var id = _fixture.Create<long>();
           
             // Act
             var result = await _dao.GetById(id);
@@ -1629,7 +1629,7 @@ namespace {context.ProjectName}.Modules.{context.PluralizedModuleName}.Tests.Dao
         {{
             // Arrange
             var ignoreMissingOrNullFields = true;
-            var id = _fixture.Create<int>();
+            var id = _fixture.Create<long>();
             var updateDto = _fixture.Create<{context.UpdateDtoName}>();
 
             // Act
@@ -1661,7 +1661,7 @@ namespace {context.ProjectName}.Modules.{context.PluralizedModuleName}.Tests.Dao
         {{
             // Arrange
             var ignoreMissingOrNullFields = false;
-            var id = _fixture.Create<int>();
+            var id = _fixture.Create<long>();
             var updateDto = _fixture.Create<{context.UpdateDtoName}>();
 
             // Act
@@ -1689,7 +1689,7 @@ namespace {context.ProjectName}.Modules.{context.PluralizedModuleName}.Tests.Dao
         public async Task Delete_ReturnsFalse_WhenNotExists()
         {{
             // Arrange
-            var id = _fixture.Create<int>();
+            var id = _fixture.Create<long>();
      
             // Act
             var found = await _dao.Delete(id);
