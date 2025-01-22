@@ -54,12 +54,7 @@ namespace NestNet.Cli.Generators
             }
             catch (Exception ex)
             {
-                WriteLog(ex.Message);
-                if (ex.StackTrace != null)
-                {
-                    WriteLog(ex.StackTrace);
-                }
-
+                WriteLog(ex.ToString().EscapeMarkup());
                 AnsiConsole.MarkupLine(Helpers.FormatMessage("\nDtos generation - failed", "red"));
                 return;
             }
