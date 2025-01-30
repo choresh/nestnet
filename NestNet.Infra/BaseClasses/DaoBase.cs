@@ -43,7 +43,7 @@ namespace NestNet.Infra.BaseClasses
                 return false;
             }
 
-            _context.Entry(entity).State = EntityState.Deleted; // _dbSet.Remove(entity); ???
+            _dbSet.Remove(entity);
             await _context.SaveChangesAsync();
             return true;
         }
@@ -203,6 +203,77 @@ namespace NestNet.Infra.BaseClasses
         {
             var count = await _dbSet.ApplyWhere(filter.Where).CountAsync();
             return new MetadataDto { Count = count };
+        }
+
+        /// <summary>
+        /// Usage example:
+        /// // Find by string field
+        /// var entity = await repository.GetEntityByCondition<YourEntity>(e => e.Name == "searchName");
+        /// 
+        /// // Find by numeric field
+        /// var entity = await repository.GetEntityByCondition<YourEntity>(e => e.Amount == 100);
+        /// 
+        /// // Complex conditions
+        /// var entity = await repository.GetEntityByCondition<YourEntity>(
+        ///     e => e.Status == "Active" && e.CreatedDate > DateTime.UtcNow.AddDays(-7)
+        /// );
+        /// </summary>
+        public async Task<TEntity?> GetEntityByCondition(Expression<Func<TEntity, bool>> predicate)
+        {
+            return await _dbSet.FirstOrDefaultAsync(predicate);
+        }
+
+        /// <summary>
+        /// Executes a custom query on entities using LINQ expressions.
+        /// </summary>
+        /// <typeparam name="T">The entity type to query</typeparam>
+        /// <param name="query">A function that takes an IQueryable and returns the query result</param>
+        /// <returns>The query results as an IEnumerable</returns>
+        /// <example>
+        /// Simple query:
+        /// <code>
+        /// var activeUsers = await repository.GetEntities(query =>
+        ///     query.Where(u => u.IsActive)
+        ///          .OrderBy(u => u.LastName)
+        ///          .ToListAsync());
+        /// </code>
+        /// 
+        /// Join example:
+        /// <code>
+        /// var orderDetails = await repository.GetEntities(query =>
+        ///     query.Join(
+        ///         context.Set&lt;Customer&gt;(),
+        ///         order => order.CustomerId,
+        ///         customer => customer.Id,
+        ///         (order, customer) => new { Order = order, CustomerName = customer.Name })
+        ///     .Where(x => x.Order.Status == "Pending")
+        ///     .ToListAsync());
+        /// </code>
+        /// 
+        /// Complex query with multiple joins:
+        /// <code>
+        /// var result = await repository.GetEntities(query =>
+        ///     query.Include(o => o.OrderItems)
+        ///          .Join(
+        ///              context.Set&lt;Customer&gt;(),
+        ///              order => order.CustomerId,
+        ///              customer => customer.Id,
+        ///              (order, customer) => new { Order = order, Customer = customer })
+        ///          .Where(x => 
+        ///              x.Order.CreatedDate >= DateTime.UtcNow.AddDays(-30) &&
+        ///              x.Customer.Status == "Active")
+        ///          .Select(x => new OrderViewModel
+        ///          {
+        ///              OrderId = x.Order.Id,
+        ///              CustomerName = x.Customer.Name,
+        ///              TotalAmount = x.Order.OrderItems.Sum(item => item.Price)
+        ///          })
+        ///          .ToListAsync());
+        /// </code>
+        /// </example>
+        public async Task<IEnumerable<TEntity>> GetEntities(Func<IQueryable<TEntity>, Task<List<TEntity>>> query)
+        {
+            return await query(_dbSet);
         }
     }
 }

@@ -5,6 +5,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Reflection;
 using NestNet.Infra.Helpers;
 using NestNet.Infra.Paginatation;
+using Microsoft.EntityFrameworkCore;
+using NestNet.Infra.Attributes;
 
 namespace NestNet.Infra.BaseClasses
 {
@@ -150,7 +152,14 @@ namespace NestNet.Infra.BaseClasses
 
         private bool IsSelectableProp(PropertyInfo p)
         {
-            return (p.GetCustomAttribute<ColumnAttribute>() != null);
+            var propAttribute = p.GetCustomAttribute<PropAttribute>();
+            var notMappedAttribute = p.GetCustomAttribute<NotMappedAttribute>();
+
+            // Property must have PropAttribute, must not be marked as NotMapped,
+            // and must not be marked with GenOpt.Ignore
+            return propAttribute != null 
+                && notMappedAttribute == null 
+                && propAttribute.Result != GenOpt.Ignore;
         }
 
         private DataWithOptionalError<SafePaginationRequest> ParsePaginationRequest(UnsafePaginationRequest unsafeRequest)
