@@ -1,6 +1,7 @@
 ﻿using NestNet.Cli.Infra;
 using NestNet.Infra.Attributes;
 using Spectre.Console;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Reflection;
 
 namespace NestNet.Cli.Generators
@@ -160,7 +161,7 @@ namespace NestNet.Cli.Generators
             // Find all entity classes in current project assembly
             var entities = context.ProjectAssembly
                 .GetTypes()
-                .Where(t => (t.GetCustomAttribute<EntityAttribute>() != null));
+                .Where(t => (t.GetCustomAttribute<TableAttribute>() != null));
 
             foreach (var entity in entities)
             {
