@@ -37,11 +37,15 @@ namespace NestNet.Infra.BaseClasses
 
         public virtual async Task<bool> Delete(long id)
         {
-            var rowsAffected = await _dbSet
-                .Where(e => (e.Id == id))
-                .ExecuteDeleteAsync();
-            
-            return (rowsAffected > 0);
+            var entity = await _dbSet.FindAsync(id);
+            if (entity == null)
+            {
+                return false;
+            }
+
+            _context.Entry(entity).State = EntityState.Deleted; // _dbSet.Remove(entity); ???
+            await _context.SaveChangesAsync();
+            return true;
         }
 
         public virtual async Task<PaginatedResult<TEntity>> GetPaginated(SafePaginationRequest request)
