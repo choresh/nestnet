@@ -2,7 +2,7 @@
   "profiles": {
     "NestNet.Cli": {
       "commandName": "Project",
-      "workingDirectory": "C:\\GlobalE\\nestnet\\NestNet.Sample\\SampleApp"
+      "workingDirectory": "C:\\GlobalE\\ChargeBackPoc\\ChargeBack"
     }
   }
 }
