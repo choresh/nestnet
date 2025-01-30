@@ -3,6 +3,7 @@ using System.Reflection;
 using SampleApp.Data;
 using NestNet.Infra.Helpers;
 using NestNet.Infra.Swagger;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,12 +11,12 @@ var builder = WebApplication.CreateBuilder(args);
 // Format connection string
 static string CreateConnectionString(string[] args)
 {
-    var erver = ConfigHelper.GetConfigParam(args, "POSTGRES_SERVER");
+    var server = ConfigHelper.GetConfigParam(args, "POSTGRES_SERVER");
     var dbName = ConfigHelper.GetConfigParam(args, "POSTGRES_DB_NAME");
     var user = ConfigHelper.GetConfigParam(args, "POSTGRES_USER");
     var password = ConfigHelper.GetConfigParam(args, "POSTGRES_PASSWORD");
 
-    return $"Host={erver}; Database={dbName}; Username={user}; Password={password}";
+    return $"Host={server}; Database={dbName}; Username={user}; Password={password}";
 }
 
 // * Add Entity Framework Core.
@@ -23,7 +24,6 @@ static string CreateConnectionString(string[] args)
 var connectionString = CreateConnectionString(args);
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString));
-
 
 // Support Dependency Injection for all classes with [Injectable] attribute
 // (Daos, Services, etc), within the given assembleis.
@@ -61,8 +61,12 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-
-// Initialize/update the DB
-DbHelper.InitDb<ApplicationDbContext>(app.Services);
+// Initialize / update the DB
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    // dbContext.Database.Migrate();  // This will create the database and apply migration
+    dbContext.Database.EnsureCreated();  // Simpler, doesn't support migrations
+}
 
 app.Run();

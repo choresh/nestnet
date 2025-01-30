@@ -15,7 +15,7 @@ namespace SampleApp.Modules.MyModules.Daos
     public class MyModuleDao : DaoBase<Entities.MyModule, MyModuleQueryDto>, IMyModuleDao
     {
         public MyModuleDao(ApplicationDbContext context)
-            : base(context, context.GetDbSet<Entities.MyModule>(), "MyModuleId")
+            : base(context, context.Set<Entities.MyModule>(), "MyModuleId")
         {
         }
 

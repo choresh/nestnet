@@ -1,7 +1,7 @@
 ﻿#pragma warning disable IDE0290 // Use primary constructor
 using NestNet.Infra.Query;
 using AutoMapper;
-using NestNet.Infra.Attributes;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Reflection;
 using NestNet.Infra.Helpers;
 using NestNet.Infra.Paginatation;
@@ -150,12 +150,7 @@ namespace NestNet.Infra.BaseClasses
 
         private bool IsSelectableProp(PropertyInfo p)
         {
-            var attr = p.GetCustomAttribute<PropAttribute>();
-            return (
-                (attr != null) &&
-                (attr.Store != DbOpt.Ignore) &&
-                (attr.Result != GenOpt.Ignore)
-            );
+            return (p.GetCustomAttribute<ColumnAttribute>() != null);
         }
 
         private DataWithOptionalError<SafePaginationRequest> ParsePaginationRequest(UnsafePaginationRequest unsafeRequest)

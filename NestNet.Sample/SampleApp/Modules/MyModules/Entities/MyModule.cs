@@ -1,9 +1,10 @@
 using NestNet.Infra.BaseClasses;
 using NestNet.Infra.Attributes;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace SampleApp.Modules.MyModules.Entities
 {
-    [Entity("MyModules")]
+    [Table("MyModules")]
     public class MyModule : EntityBase
     {
         // This property enables code at 'NestNet.Infra' to handle the entity in general 
@@ -11,9 +12,9 @@ namespace SampleApp.Modules.MyModules.Entities
         [Prop(
             create: GenOpt.Ignore,
             update: GenOpt.Ignore,
-            result: GenOpt.Ignore,
-            store: DbOpt.Ignore
+            result: GenOpt.Ignore
         )]
+        // DB - ignore
         public override long Id
         {
             get { return MyModuleId; }
@@ -24,41 +25,42 @@ namespace SampleApp.Modules.MyModules.Entities
         [Prop(
             create: GenOpt.Ignore,
             update: GenOpt.Ignore,
-            result: GenOpt.Mandatory,
-            store: DbOpt.PrimaryKey
+            result: GenOpt.Mandatory
         )]
+        // DB - pk
         public long MyModuleId { get; set; }
 
         [Prop(
             create: GenOpt.Mandatory,
             update: GenOpt.Optional,
-            result: GenOpt.Mandatory,
-            store: DbOpt.Standard
+            result: GenOpt.Mandatory
         )]
+        // DB - standard
         public required string Name { get; set; }
 
         [Prop(
             create: GenOpt.Mandatory,
             update: GenOpt.Optional,
-            result: GenOpt.Mandatory,
-            store: DbOpt.Standard
+            result: GenOpt.Mandatory
         )]
+        // DB - standard
         public long Age { get; set; }
 
         [Prop(
             create: GenOpt.Optional,
             update: GenOpt.Optional,
-            result: GenOpt.Optional,
-            store: DbOpt.Standard
+            result: GenOpt.Optional
         )]
+
+        // DB - standard
         public string? Email { get; set; }
 
         [Prop(
             create: GenOpt.Mandatory,
             update: GenOpt.Ignore,
-            result: GenOpt.Ignore,
-            store: DbOpt.Ignore
+            result: GenOpt.Ignore
         )]
+        // DB - ignore
         public string? MyVirtualField { get; set; }
     }
 }
