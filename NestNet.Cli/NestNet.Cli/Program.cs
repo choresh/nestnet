@@ -51,7 +51,8 @@ class Program
         Console.WriteLine("    Usage: nestnet");
         Console.WriteLine();
         Console.WriteLine("  Generate new application:");
-        Console.WriteLine("    Usage: nestnet app [--no-console]"); Console.WriteLine();
+        Console.WriteLine("    Usage: nestnet app [--app-type api|worker|both] [--no-console]");
+        Console.WriteLine();
         Console.WriteLine("  Generate new module (in application):");
         Console.WriteLine("    A generated module contains:");
         Console.WriteLine("      * Sample Entity");
@@ -115,14 +116,45 @@ class Program
     static void SetupAppCommand(Command rootCommand)
     {
         var appCommand = new Command("app", "Generate new application");
-        appCommand.SetHandler(() =>
+        
+        var appTypeOption = new Option<string>(
+            "--app-type",
+            () => "api",
+            "Type of application to generate (api/worker/both)"
+        );
+        appTypeOption.AddValidator(result =>
         {
-            AppGenerator.Run(new AppGenerator.InputParams()
+            var value = result.GetValueOrDefault<string>()?.ToLower();
+            if (value != "api" && value != "worker" && value != "both")
             {
-                // DbType = DbType
-            });
+                result.ErrorMessage = "The --app-type option must be 'api', 'worker', or 'both'.";
+            }
         });
+        
+        appCommand.AddOption(appTypeOption);
+        appCommand.SetHandler((appType) =>
+        {
+            GenerateApps(appType.ToLower());
+        }, appTypeOption);
+        
         rootCommand.AddCommand(appCommand);
+    }
+
+    static void GenerateApps(string appType)
+    {
+        switch (appType)
+        {
+            case "api":
+                new ApiAppGenerator().Run();
+                break;
+            case "worker":
+                new WorkerAppGenerator().Run();
+                break;
+            case "both":
+                new ApiAppGenerator().Run();
+                new WorkerAppGenerator().Run();
+                break;
+        }
     }
 
     static void SetupModuleCommand(Command rootCommand)
@@ -313,7 +345,7 @@ class Program
                 new SelectionPrompt<string>()
                     .Title("[green]NestNet.Cli[/] - Use arrow keys to select an option and press Enter:")
                     .AddChoices(new[] {
-                        "Generate App",
+                        "Generate Application",
                         "Generate Module",
                         "Generate Resource",
                         "Generate DTOs",
@@ -323,8 +355,8 @@ class Program
 
             switch (choice)
             {
-                case "Generate App":
-                    AppGenerator.Run();
+                case "Generate Application":
+                    GenerateApplicationInteractive();
                     break;
                 case "Generate Module":
                     ModuleGenerator.Run();
@@ -349,6 +381,32 @@ class Program
                 AnsiConsole.WriteLine("Press any key to return to the main menu...");
                 Console.ReadKey(true);
             }
+        }
+    }
+
+    static void GenerateApplicationInteractive()
+    {
+        var appTypes = AnsiConsole.Prompt(
+            new MultiSelectionPrompt<string>()
+                .Title("[green]Select application type(s) to generate[/]")
+                .PageSize(3)
+                .Required()
+                .InstructionsText(
+                    "[grey](Press [blue]<space>[/] to toggle selection, " +
+                    "[green]<enter>[/] to accept)[/]")
+                .AddChoices(new[] {
+                    "API Application",
+                    "Worker Application"
+                }));
+
+        if (appTypes.Contains("API Application"))
+        {
+            new ApiAppGenerator().Run();
+        }
+        
+        if (appTypes.Contains("Worker Application"))
+        {
+            new WorkerAppGenerator().Run();
         }
     }
 }

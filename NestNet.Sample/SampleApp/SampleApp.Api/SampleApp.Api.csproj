@@ -24,9 +24,6 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\NestNet.Infra\NestNet.Infra.csproj" />
-  </ItemGroup>
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
     <Exec Command="nestnet.exe dtos --tar-dir \Dtos --no-console" />
   </Target>

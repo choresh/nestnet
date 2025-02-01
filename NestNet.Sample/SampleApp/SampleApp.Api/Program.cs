@@ -1,11 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
-using SampleApp.Data;
+using SampleApp.Api.Data;
 using NestNet.Infra.Helpers;
 using NestNet.Infra.Swagger;
 
 var builder = WebApplication.CreateBuilder(args);
-
 
 // Format connection string
 static string CreateConnectionString(string[] args)
@@ -18,8 +17,7 @@ static string CreateConnectionString(string[] args)
     return $"Host={server}; Database={dbName}; Username={user}; Password={password}";
 }
 
-// * Add Entity Framework Core.
-// * If your entities not located (only) at current assembly - customise via C'tor of 'ApplicationDbContext'.
+// Add DB Context
 var connectionString = CreateConnectionString(args);
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString));

@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using NestNet.Infra.BaseClasses;
 using System.Reflection;
 
-namespace SampleApp.Data
+namespace SampleApp.Api.Data
 {
     public class ApplicationDbContext : ApplicationDbContextBase
     {

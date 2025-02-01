@@ -5,7 +5,7 @@ VisualStudioVersion = 17.11.35222.181
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NestNet.Infra", "..\NestNet.Infra\NestNet.Infra.csproj", "{788D8AE3-9EFB-4C80-BC6C-FF23E197FE03}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SampleApp", "SampleApp\SampleApp.csproj", "{6527AFCD-1E7B-430F-BC4C-33EB774A9893}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SampleApp.Worker", "SampleApp\SampleApp.Worker\SampleApp.Worker.csproj", "{A860E298-3AE9-4BDB-8AFE-ADC9A9880860}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,10 +17,10 @@ Global
 		{788D8AE3-9EFB-4C80-BC6C-FF23E197FE03}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{788D8AE3-9EFB-4C80-BC6C-FF23E197FE03}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{788D8AE3-9EFB-4C80-BC6C-FF23E197FE03}.Release|Any CPU.Build.0 = Release|Any CPU
-		{6527AFCD-1E7B-430F-BC4C-33EB774A9893}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{6527AFCD-1E7B-430F-BC4C-33EB774A9893}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{6527AFCD-1E7B-430F-BC4C-33EB774A9893}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{6527AFCD-1E7B-430F-BC4C-33EB774A9893}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A860E298-3AE9-4BDB-8AFE-ADC9A9880860}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A860E298-3AE9-4BDB-8AFE-ADC9A9880860}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A860E298-3AE9-4BDB-8AFE-ADC9A9880860}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A860E298-3AE9-4BDB-8AFE-ADC9A9880860}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
