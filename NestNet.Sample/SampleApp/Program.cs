@@ -3,7 +3,6 @@ using System.Reflection;
 using SampleApp.Data;
 using NestNet.Infra.Helpers;
 using NestNet.Infra.Swagger;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -32,8 +31,8 @@ DependencyInjectionHelper.RegisterInjetables(builder.Services, [Assembly.GetExec
 // Add services to the container.
 
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
+// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+builder.Services.AddOpenApi();
 
 builder.Services.AddSwaggerGen(c =>
 {
@@ -53,6 +52,7 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    app.MapOpenApi();
 }
 
 app.UseHttpsRedirection();

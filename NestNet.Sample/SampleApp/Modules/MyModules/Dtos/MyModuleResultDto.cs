@@ -11,7 +11,5 @@ namespace SampleApp.Modules.MyModules.Dtos
 		public required String Name { get; set; }
 		public required Int64 Age { get; set; }
 		public String? Email { get; set; }
-		public required DateTime CreatedAt { get; set; }
-		public required DateTime UpdatedAt { get; set; }
     }
 }

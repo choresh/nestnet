@@ -22,13 +22,13 @@ namespace SampleApp.Modules.MyModules.Entities
             set { MyModuleId = value; }
         }
 
-        [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         [Prop(
             create: GenOpt.Ignore,
             update: GenOpt.Ignore,
             result: GenOpt.Mandatory
         )]
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long MyModuleId { get; set; }
 
         [Prop(
@@ -57,7 +57,6 @@ namespace SampleApp.Modules.MyModules.Entities
             update: GenOpt.Ignore,
             result: GenOpt.Ignore
         )]
-
         [NotMapped] // Exclude property from DB.
         public string? MyVirtualField { get; set; }
     }

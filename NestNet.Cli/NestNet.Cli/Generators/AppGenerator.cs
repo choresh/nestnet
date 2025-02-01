@@ -5,6 +5,7 @@ using NestNet.Cli.Infra;
 using System.Reflection;
 using NestNet.Infra.Enums;
 using System.Data;
+using AutoMapper.Configuration.Conventions;
 
 namespace NestNet.Cli.Generators
 {
@@ -17,7 +18,8 @@ namespace NestNet.Cli.Generators
 
         private class AppGenerationContext
         {
-            public AppGenerationContext(string currentDir, string projectName, NestNet.Infra.Enums.DbType dbType) {
+            public AppGenerationContext(string currentDir, string projectName, NestNet.Infra.Enums.DbType dbType)
+            {
                 CurrentDir = currentDir;
                 ProjectName = projectName;
                 DbType = dbType;
@@ -155,13 +157,13 @@ namespace NestNet.Cli.Generators
             var propertyGroup = doc.Root.Elements(ns + "PropertyGroup").First();
             propertyGroup.Add(new XElement(ns + "GenerateDocumentationFile", "true"));
 
-             var target = new XElement(ns + "Target",
-                new XAttribute("Name", "PostBuild"),
-                new XAttribute("AfterTargets", "PostBuildEvent"),
-                new XElement(ns + "Exec",
-                    new XAttribute("Command", "nestnet.exe dtos --tar-dir \\Dtos --no-console")
-                )
-            );
+            var target = new XElement(ns + "Target",
+               new XAttribute("Name", "PostBuild"),
+               new XAttribute("AfterTargets", "PostBuildEvent"),
+               new XElement(ns + "Exec",
+                   new XAttribute("Command", "nestnet.exe dtos --tar-dir \\Dtos --no-console")
+               )
+           );
 
             doc.Root.Add(target);
             doc.Save(csprojPath);
@@ -174,17 +176,17 @@ namespace NestNet.Cli.Generators
         private static void ModifyWebApiProject(AppGenerationContext context)
         {
             AnsiConsole.MarkupLine(Helpers.FormatMessage("Some capabilities (Entity Framework support, automatic registration of DAOs and Services, enhanced Swagger features) will be added to the project...", "green"));
-            
+
             var dbRelatedContent = GetDbRelatedContent(context.DbType);
-            
+
             RunDotNetCommand($"add package {dbRelatedContent.NugetsContent}");
             RunDotNetCommand("add package Microsoft.EntityFrameworkCore.Tools");
             RunDotNetCommand("add package Microsoft.EntityFrameworkCore.InMemory");
-            
+
             CreateApplicationDbContextFile(context);
-            
+
             UpdateProgramCs(context, dbRelatedContent.ConfigurationContent);
-            
+
             AnsiConsole.MarkupLine(Helpers.FormatMessage("Some capabilities (Entity Framework support, automatic registration of DAOs and Services, enhanced Swagger features) has been added to the project...", "green"));
         }
 
@@ -274,11 +276,13 @@ namespace NestNet.Cli.Generators
             var programCsPath = Path.Combine(context.CurrentDir, "Program.cs");
             var content = File.ReadAllText(programCsPath);
 
-            content = content.Replace("var builder = WebApplication.CreateBuilder(args);", GetProgramCsStartContent(context.ProjectName, dbConfigurationContent));
+            content = Replace(content, "var builder = WebApplication.CreateBuilder(args);", GetProgramCsContent1(context.ProjectName, dbConfigurationContent));
+     
+            content = Replace(content, "builder.Services.AddOpenApi();", GetProgramCsContent2());
 
-            content = content.Replace("builder.Services.AddSwaggerGen();", GetProgramCsMiddleContent());
+            content = Replace(content, "app.MapOpenApi();", GetProgramCsContent3());
 
-            content = content.Replace("app.Run();", GetProgramCsEndContent());
+            content = Replace(content, "app.Run();", GetProgramCsContent4());
 
             File.WriteAllText(programCsPath, content);
 
@@ -362,12 +366,12 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 // Format connection string
 static string CreateConnectionString(string[] args)
 {{
-    var erver = ConfigHelper.GetConfigParam(args, ""POSTGRES_SERVER"");
+    var server = ConfigHelper.GetConfigParam(args, ""POSTGRES_SERVER"");
     var dbName = ConfigHelper.GetConfigParam(args, ""POSTGRES_DB_NAME"");
     var user = ConfigHelper.GetConfigParam(args, ""POSTGRES_USER"");
     var password = ConfigHelper.GetConfigParam(args, ""POSTGRES_PASSWORD"");
 
-    return $""Host={{erver}}; Database={{dbName}}; Username={{user}}; Password={{password}}"";
+    return $""Host={{server}}; Database={{dbName}}; Username={{user}}; Password={{password}}"";
 }}
 
 // * Add Entity Framework Core.
@@ -378,7 +382,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 ";
         }
 
-        private static string GetProgramCsStartContent(string projectName, string dbConfigurationContent)
+        private static string GetProgramCsContent1(string projectName, string dbConfigurationContent)
         {
             return $@"using Microsoft.EntityFrameworkCore;
 using System.Reflection;
@@ -389,15 +393,15 @@ using NestNet.Infra.Swagger;
 var builder = WebApplication.CreateBuilder(args);
 
 {dbConfigurationContent}
-
 // Support Dependency Injection for all classes with [Injectable] attribute
 // (Daos, Services, etc), within the given assembleis.
 DependencyInjectionHelper.RegisterInjetables(builder.Services, [Assembly.GetExecutingAssembly()]);";
         }
 
-        private static string GetProgramCsMiddleContent()
+        private static string GetProgramCsContent2()
         {
-            return @"
+            return @"builder.Services.AddOpenApi();
+
 builder.Services.AddSwaggerGen(c =>
 {
     c.EnableAnnotations();
@@ -410,11 +414,22 @@ builder.Services.AddSwaggerGen(c =>
 });";
         }
 
-        private static string GetProgramCsEndContent()
+        private static string GetProgramCsContent3()
         {
-            return @"
-// Initialize/update the DB
-DbHelper.InitDb<ApplicationDbContext>(app.Services);
+            return @"app.UseSwagger();
+    app.UseSwaggerUI();
+    app.MapOpenApi();";
+        }
+
+        private static string GetProgramCsContent4()
+        {
+            return @"// Initialize / update the DB
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+    // dbContext.Database.Migrate();  // This will create the database and apply migration
+    dbContext.Database.EnsureCreated();  // Simpler, doesn't support migrations
+}
 
 app.Run();";
         }
@@ -450,7 +465,7 @@ namespace {projectName}.Data
 
             // Copy documentation files
             CopyEmbeddedResource("README.md", Path.Combine(docDir, "README.md"));
-            
+
             AnsiConsole.MarkupLine(Helpers.FormatMessage("Copy documentation ended", "green"));
         }
 
@@ -477,6 +492,15 @@ namespace {projectName}.Data
             {
                 throw new InvalidOperationException($"Failed to copy resource {resourceName} to {targetPath}", ex);
             }
+        }
+
+        private static string Replace(string content, string oldValue, string newValue)
+        {
+            if (!content.Contains(oldValue))
+            {
+                throw new Exception($"Content not contains '{oldValue}'");
+            }
+            return content.Replace(oldValue, newValue);
         }
     }
 }
