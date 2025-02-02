@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net8.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <Compile Remove="Modules\MyModule\Tests\**" />
+      <EmbeddedResource Remove="Modules\MyModule\Tests\**" />
+      <None Remove="Modules\MyModule\Tests\**" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.EntityFrameworkCore" Version="*" />
+        <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="*" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\..\NestNet.Infra\NestNet.Infra.csproj" />
+    </ItemGroup>
+
+</Project>

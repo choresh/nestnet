@@ -32,17 +32,19 @@ namespace NestNet.Cli.Infra
             return $"[{style}]{message}[/]";
         }
 
-        public static (string? currentDir, string? projectName) GetProjectInfo()
+        public static (string? projectDir, string? projectName) GetProjectInfo(ProjType projType)
         {
             var currentDir = Directory.GetCurrentDirectory();
-            var csprojFile = Directory.GetFiles(currentDir, "*.csproj").FirstOrDefault();
+            var baseProjectName = Path.GetFileName(currentDir);
+            var projectName = $"{baseProjectName}.{projType}";
+            var projectDir = Path.Join(currentDir, projectName);
+            var csprojFile = Directory.GetFiles(projectDir, "*.csproj").FirstOrDefault();
             if (csprojFile == null)
             {
-                AnsiConsole.MarkupLine(Helpers.FormatMessage("Error: No .csproj file found in the current directory.", "red"));
+                AnsiConsole.MarkupLine(Helpers.FormatMessage($"Error: No .csproj file found in the '{projType}' project directory.", "red"));
                 return (null, null);
             }
-            var projectName = Path.GetFileName(currentDir);
-            return (currentDir, projectName);
+            return (projectDir, projectName);
         }
 
         public static string FormatDtoName(string baseName, DtoType dtoType)

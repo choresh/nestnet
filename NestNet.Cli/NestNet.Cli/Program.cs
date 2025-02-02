@@ -1,5 +1,10 @@
 ﻿using NestNet.Cli.Generators;
+using NestNet.Cli.Generators.App;
+using NestNet.Cli.Generators.Core;
+using NestNet.Cli.Generators.Dtos;
+using NestNet.Cli.Generators.Resource;
 using NestNet.Cli.Installation;
+using NestNet.Infra.Enums;
 using Spectre.Console;
 using System.CommandLine;
 using System.Runtime.InteropServices;
@@ -49,6 +54,9 @@ class Program
         Console.WriteLine("");
         Console.WriteLine("  Using interactive console:");
         Console.WriteLine("    Usage: nestnet");
+        Console.WriteLine();
+        Console.WriteLine("  Generate new core project:");
+        Console.WriteLine("    Usage: nestnet core [--db-type <mssql|postgres>] [--no-console]");
         Console.WriteLine();
         Console.WriteLine("  Generate new application:");
         Console.WriteLine("    Usage: nestnet app [--no-console]"); Console.WriteLine();
@@ -109,6 +117,7 @@ class Program
         SetupDtosCommand(rootCommand);
         SetupSetPathCommand(rootCommand);
         SetupRemovePathCommand(rootCommand);
+        SetupCoreCommand(rootCommand);
         return rootCommand;
     }
 
@@ -119,7 +128,7 @@ class Program
         {
             AppGenerator.Run(new AppGenerator.InputParams()
             {
-                // DbType = DbType
+                // Currently no any params for this generator.
             });
         });
         rootCommand.AddCommand(appCommand);
@@ -257,6 +266,24 @@ class Program
         rootCommand.AddCommand(pathCommand);
     }
 
+    static void SetupCoreCommand(Command rootCommand)
+    {
+        var coreCommand = new Command("core", "Generate new core project");
+        var dbTypeOption = new Option<string>("--db-type", "Database type (mssql/postgres)");
+        
+        coreCommand.AddOption(dbTypeOption);
+        
+        coreCommand.SetHandler((dbType) =>
+        {
+            CoreGenerator.Run(new CoreGenerator.InputParams
+            {
+                DbType = string.IsNullOrEmpty(dbType) ? null : Enum.Parse<DbType>(dbType, true)
+            });
+        }, dbTypeOption);
+
+        rootCommand.AddCommand(coreCommand);
+    }
+
     static async Task<int> RunSilentMode(string[] args)
     {     
         if (args.Contains("--version"))
@@ -311,9 +338,11 @@ class Program
         {
             var choice = AnsiConsole.Prompt(
                 new SelectionPrompt<string>()
-                    .Title("[green]NestNet.Cli[/] - Use arrow keys to select an option and press Enter:")
-                    .AddChoices(new[] {
-                        "Generate App",
+                    .Title("What would you like to do?")
+                    .AddChoices(new[]
+                    {
+                        "Generate Core Project",
+                        "Generate Application",
                         "Generate Module",
                         "Generate Resource",
                         "Generate DTOs",
@@ -323,7 +352,10 @@ class Program
 
             switch (choice)
             {
-                case "Generate App":
+                case "Generate Core Project":
+                    CoreGenerator.Run();
+                    break;
+                case "Generate Application":
                     AppGenerator.Run();
                     break;
                 case "Generate Module":
