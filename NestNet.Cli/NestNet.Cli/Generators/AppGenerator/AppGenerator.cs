@@ -11,7 +11,7 @@ namespace NestNet.Cli.Generators.AppGenerator
     {
         public class InputParams
         {
-            // public IEnumerable<AppType> AppTypes { get; set; }
+            public required IEnumerable<AppType> AppTypes { get; set; }
         }
 
         private class AppGenerationContext

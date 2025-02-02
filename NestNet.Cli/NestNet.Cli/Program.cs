@@ -3,6 +3,7 @@ using NestNet.Cli.Generators.CoreGenerator;
 using NestNet.Cli.Generators.DtosGenerator;
 using NestNet.Cli.Generators.ModuleGenerator;
 using NestNet.Cli.Generators.ResourceGenerator;
+using NestNet.Cli.Infra;
 using NestNet.Cli.Installation;
 using NestNet.Infra.Enums;
 using Spectre.Console;
@@ -59,7 +60,8 @@ class Program
         Console.WriteLine("    Usage: nestnet core [--db-type <mssql|postgres>] [--no-console]");
         Console.WriteLine();
         Console.WriteLine("  Generate new application:");
-        Console.WriteLine("    Usage: nestnet app [--no-console]"); Console.WriteLine();
+        Console.WriteLine("    Usage: nestnet app [--app-type <api|worker|both>] [--no-console]");
+        Console.WriteLine();
         Console.WriteLine("  Generate new module (in application):");
         Console.WriteLine("    A generated module contains:");
         Console.WriteLine("      * Sample Entity");
@@ -124,13 +126,47 @@ class Program
     static void SetupAppCommand(Command rootCommand)
     {
         var appCommand = new Command("app", "Generate new application");
-        appCommand.SetHandler(() =>
+        
+        var appTypeOption = new Option<string>(
+            "--app-type",
+            description: "Type of application (api/worker/both)",
+            getDefaultValue: () => "api"
+        );
+        appTypeOption.AddValidator(result =>
         {
+            var value = result.GetValueOrDefault<string>()?.ToLower();
+            if (value != null && value != "api" && value != "worker" && value != "both")
+            {
+                result.ErrorMessage = "The --app-type option must be 'api', 'worker', or 'both'.";
+            }
+        });
+        
+        appCommand.AddOption(appTypeOption);
+        
+        appCommand.SetHandler((appType) =>
+        {
+            var appTypes = new List<AppType>();
+            switch (appType)
+            {
+                case "API Application":
+                    appTypes.Add(AppType.ApiApp);
+                    break;
+                case "Worker Service":
+                    appTypes.Add(AppType.WorkerApp);
+                    break;
+                case "Both (API + Worker)":
+                    appTypes.Add(AppType.ApiApp);
+                    appTypes.Add(AppType.WorkerApp);
+                    break;
+                default:
+                    throw new ArgumentException("Invalid app type");
+            }
             AppGenerator.Run(new AppGenerator.InputParams()
             {
-                // Currently no any params for this generator.
+                AppTypes = appTypes
             });
-        });
+        }, appTypeOption);
+        
         rootCommand.AddCommand(appCommand);
     }
 
@@ -356,7 +392,42 @@ class Program
                     CoreGenerator.Run();
                     break;
                 case "Generate Application":
-                    AppGenerator.Run();
+                    var appType = AnsiConsole.Prompt(
+                        new SelectionPrompt<string>()
+                            .Title("What type of application would you like to generate?")
+                            .AddChoices(new[]
+                            {
+                                "API Application",
+                                "Worker Service",
+                                "Both (API + Worker)",
+                                "Return to Main Menu"
+                            }));
+
+                    if (appType == "Return to Main Menu")
+                    {
+                        break;
+                    }
+
+                    var appTypes = new List<AppType>();
+                    switch (appType)
+                    {
+                        case "API Application":
+                            appTypes.Add(AppType.ApiApp);
+                            break;
+                        case "Worker Service":
+                            appTypes.Add(AppType.WorkerApp);
+                            break;
+                        case "Both (API + Worker)":
+                            appTypes.Add(AppType.ApiApp);
+                            appTypes.Add(AppType.WorkerApp);
+                            break;
+                        default:
+                            throw new ArgumentException("Invalid app type");
+                    }
+                    AppGenerator.Run(new AppGenerator.InputParams()
+                    {
+                        AppTypes = appTypes
+                    });
                     break;
                 case "Generate Module":
                     ModuleGenerator.Run();
