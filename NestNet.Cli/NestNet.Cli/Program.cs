@@ -1,8 +1,8 @@
-﻿using NestNet.Cli.Generators;
-using NestNet.Cli.Generators.App;
-using NestNet.Cli.Generators.Core;
-using NestNet.Cli.Generators.Dtos;
-using NestNet.Cli.Generators.Resource;
+﻿using NestNet.Cli.Generators.AppGenerator;
+using NestNet.Cli.Generators.CoreGenerator;
+using NestNet.Cli.Generators.DtosGenerator;
+using NestNet.Cli.Generators.ModuleGenerator;
+using NestNet.Cli.Generators.ResourceGenerator;
 using NestNet.Cli.Installation;
 using NestNet.Infra.Enums;
 using Spectre.Console;
