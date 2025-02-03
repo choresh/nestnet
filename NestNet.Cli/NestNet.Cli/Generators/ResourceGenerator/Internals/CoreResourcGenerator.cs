@@ -65,7 +65,6 @@ namespace NestNet.Cli.Generators.ResourceGenerator
                 AnsiConsole.MarkupLine(Helpers.FormatMessage($"Created: {servicePath}", "grey"));
             }
 
-
             private void CreateServiceTestFile()
             {
                 string testContent = GetServiceTestContent();
@@ -73,16 +72,6 @@ namespace NestNet.Cli.Generators.ResourceGenerator
                 Directory.CreateDirectory(GetDirectoryName(testPath));
                 File.WriteAllText(testPath, testContent);
                 AnsiConsole.MarkupLine(Helpers.FormatMessage($"Created: {testPath}", "grey"));
-            }
-
-            private string GetDirectoryName(string path)
-            {
-                var dirName = Path.GetDirectoryName(path);
-                if (dirName == null)
-                {
-                    throw new Exception($"Directory name not found, path: {path}");
-                }
-                return dirName;
             }
 
             private string GetServiceContent()
