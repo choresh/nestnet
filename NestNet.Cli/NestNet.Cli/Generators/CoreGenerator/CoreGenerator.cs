@@ -227,13 +227,41 @@ using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
-using {context.CurrProjectName}.Modules.MyModules.Dtos;
-using {context.CurrProjectName}.Modules.MyModules.Entities;
+using System.ComponentModel.DataAnnotations.Schema;
+using NestNet.Infra.BaseClasses;
+using System.ComponentModel.DataAnnotations;
 
 namespace {context.CurrProjectName}.Data.Tests
 {{
     public class AppRepositoryTests : IDisposable, IAsyncLifetime
     {{
+        [Table(""Examples"")]
+        private class ExampleEntity : EntityBase
+        {{
+            public override long Id
+            {{
+                get {{ return ExampleId; }}
+                set {{ ExampleId = value; }}
+            }}
+
+            [Key]
+            [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+            public long ExampleId {{get; set;}}
+
+            public required string Name {{ get; set; }}
+        }}
+
+        private class ExampleUpdateDto
+        {{
+            public string? Name {{ get; set; }}
+        }}
+
+        private class ExampleQueryDto
+        {{
+            public long? ExampleId {{ get; set; }}
+            public string? Name {{ get; set; }}
+        }}
+
         private readonly IFixture _fixture;
         private readonly AppDbContext _context;
         private readonly AppRepository _repository;
@@ -275,11 +303,11 @@ namespace {context.CurrProjectName}.Data.Tests
         public async Task GetAll_ReturnsAllItems()
         {{
             // Arrange
-            var srcEntities = _fixture.CreateMany<MyModuleEntity>(3).ToList();
+            var srcEntities = _fixture.CreateMany<ExampleEntity>(3).ToList();
             srcEntities.ForEach(async (entity) => await _repository.Create(entity));
 
             // Act
-            var result = await _repository.GetAll<MyModuleEntity>();
+            var result = await _repository.GetAll<ExampleEntity>();
 
             // Assert
             Assert.Equal(srcEntities.Count(), result.Count());
@@ -292,11 +320,11 @@ namespace {context.CurrProjectName}.Data.Tests
         public async Task GetById_ReturnsItem_WhenExists()
         {{
             // Arrange
-            var srcEntities = _fixture.CreateMany<MyModuleEntity>(3).ToList();
+            var srcEntities = _fixture.CreateMany<ExampleEntity>(3).ToList();
             srcEntities.ForEach(async (entity) => await _repository.Create(entity));
 
             // Act
-            var result = await _repository.GetById<MyModuleEntity>(srcEntities[1].MyModuleId);
+            var result = await _repository.GetById<ExampleEntity>(srcEntities[1].ExampleId);
 
             // Assert
             Assert.Equal(
@@ -311,7 +339,7 @@ namespace {context.CurrProjectName}.Data.Tests
             var id = _fixture.Create<long>();
 
             // Act
-            var result = await _repository.GetById<MyModuleEntity>(id);
+            var result = await _repository.GetById<ExampleEntity>(id);
 
             // Assert
             Assert.Null(result);
@@ -321,13 +349,13 @@ namespace {context.CurrProjectName}.Data.Tests
         public async Task Create_ReturnsCreatedItem()
         {{
             // Arrange
-            var srcEntity = _fixture.Create<MyModuleEntity>();
+            var srcEntity = _fixture.Create<ExampleEntity>();
 
             // Act
             await _repository.Create(srcEntity);
 
             // Assert
-            var result = await _repository.GetById<MyModuleEntity>(srcEntity.MyModuleId);
+            var result = await _repository.GetById<ExampleEntity>(srcEntity.ExampleId);
             Assert.Equal(
               JsonSerializer.Serialize(srcEntity),
               JsonSerializer.Serialize(result));
@@ -338,12 +366,12 @@ namespace {context.CurrProjectName}.Data.Tests
         {{
             // Arrange
             var ignoreMissingOrNullFields = true;
-            var srcEntities = _fixture.CreateMany<MyModuleEntity>(3).ToList();
+            var srcEntities = _fixture.CreateMany<ExampleEntity>(3).ToList();
             srcEntities.ForEach(async (entity) => await _repository.Create(entity));
-            var updateDto = _fixture.Create<MyModuleUpdateDto>();
+            var updateDto = _fixture.Create<ExampleUpdateDto>();
 
             // Act
-            var result = await _repository.Update<MyModuleUpdateDto, MyModuleEntity>(srcEntities[1].MyModuleId, updateDto, ignoreMissingOrNullFields);
+            var result = await _repository.Update<ExampleUpdateDto, ExampleEntity>(srcEntities[1].ExampleId, updateDto, ignoreMissingOrNullFields);
 
             // Assert
             Assert.NotNull(result);
@@ -356,10 +384,10 @@ namespace {context.CurrProjectName}.Data.Tests
             // Arrange
             var ignoreMissingOrNullFields = true;
             var id = _fixture.Create<long>();
-            var updateDto = _fixture.Create<MyModuleUpdateDto>();
+            var updateDto = _fixture.Create<ExampleUpdateDto>();
 
             // Act
-            var result = await _repository.Update<MyModuleUpdateDto, MyModuleEntity>(id, updateDto, ignoreMissingOrNullFields);
+            var result = await _repository.Update<ExampleUpdateDto, ExampleEntity>(id, updateDto, ignoreMissingOrNullFields);
 
             // Assert
             Assert.Null(result);
@@ -370,12 +398,12 @@ namespace {context.CurrProjectName}.Data.Tests
         {{
             // Arrange
             var ignoreMissingOrNullFields = false;
-            var srcEntities = _fixture.CreateMany<MyModuleEntity>(3).ToList();
+            var srcEntities = _fixture.CreateMany<ExampleEntity>(3).ToList();
             srcEntities.ForEach(async (entity) => await _repository.Create(entity));
-            var updateDto = _fixture.Create<MyModuleUpdateDto>();
+            var updateDto = _fixture.Create<ExampleUpdateDto>();
 
             // Act
-            var result = await _repository.Update<MyModuleUpdateDto, MyModuleEntity>(srcEntities[1].MyModuleId, updateDto, ignoreMissingOrNullFields);
+            var result = await _repository.Update<ExampleUpdateDto, ExampleEntity>(srcEntities[1].ExampleId, updateDto, ignoreMissingOrNullFields);
 
             // Assert
             Assert.NotNull(result);
@@ -388,10 +416,10 @@ namespace {context.CurrProjectName}.Data.Tests
             // Arrange
             var ignoreMissingOrNullFields = false;
             var id = _fixture.Create<long>();
-            var updateDto = _fixture.Create<MyModuleUpdateDto>();
+            var updateDto = _fixture.Create<ExampleUpdateDto>();
 
             // Act
-            var result = await _repository.Update<MyModuleUpdateDto, MyModuleEntity>(id, updateDto, ignoreMissingOrNullFields);
+            var result = await _repository.Update<ExampleUpdateDto, ExampleEntity>(id, updateDto, ignoreMissingOrNullFields);
 
             // Assert
             Assert.Null(result);
@@ -401,11 +429,11 @@ namespace {context.CurrProjectName}.Data.Tests
         public async Task Delete_ReturnsTrue_WhenExists()
         {{
             // Arrange
-            var srcEntities = _fixture.CreateMany<MyModuleEntity>(3).ToList();
+            var srcEntities = _fixture.CreateMany<ExampleEntity>(3).ToList();
             srcEntities.ForEach(async (entity) => await _repository.Create(entity));
 
             // Act
-            var found = await _repository.Delete<MyModuleEntity>(srcEntities[1].MyModuleId);
+            var found = await _repository.Delete<ExampleEntity>(srcEntities[1].ExampleId);
 
             // Assert
             Assert.True(found);
@@ -418,7 +446,7 @@ namespace {context.CurrProjectName}.Data.Tests
             var id = _fixture.Create<long>();
 
             // Act
-            var found = await _repository.Delete<MyModuleEntity>(id);
+            var found = await _repository.Delete<ExampleEntity>(id);
 
             // Assert
             Assert.False(found);
@@ -428,19 +456,19 @@ namespace {context.CurrProjectName}.Data.Tests
         public async Task GetPaginated_ReturnsPaginatedItems()
         {{
             // Arrange
-            var srcEntities = _fixture.CreateMany<MyModuleEntity>(3)
+            var srcEntities = _fixture.CreateMany<ExampleEntity>(3)
                .Select((entity, index) =>
                {{
-                   entity.MyModuleId = index + 1;
+                   entity.ExampleId = index + 1;
                    return entity;
                }})
                .ToList();
             srcEntities.ForEach(async (entity) => await _repository.Create(entity));
-            var value = srcEntities[1].MyModuleId;
-            var propertyName = ""MyModuleId"";
+            var value = srcEntities[1].ExampleId;
+            var propertyName = ""ExampleId"";
             var resultItems = srcEntities
-                  .Where(e => e.MyModuleId != value)
-                  .OrderByDescending(e => e.MyModuleId);
+                  .Where(e => e.ExampleId != value)
+                  .OrderByDescending(e => e.ExampleId);
             var safeRequest = new SafePaginationRequest()
             {{
                 IncludeTotalCount = true,
@@ -462,14 +490,14 @@ namespace {context.CurrProjectName}.Data.Tests
                     }}
                 }}
             }};
-            var expectedResult = new PaginatedResult<MyModuleEntity>
+            var expectedResult = new PaginatedResult<ExampleEntity>
             {{
                 Items = resultItems,
                 TotalCount = resultItems.Count()
             }};
 
             // Act
-            var result = await _repository.GetPaginated<MyModuleEntity>(safeRequest);
+            var result = await _repository.GetPaginated<ExampleEntity>(safeRequest);
 
             // Assert
             Assert.NotNull(result);
@@ -483,13 +511,13 @@ namespace {context.CurrProjectName}.Data.Tests
         public async Task GetMany_ReturnsMatchingItems()
         {{
             // Arrange
-            var srcEntities = _fixture.CreateMany<MyModuleEntity>(3).ToList();
+            var srcEntities = _fixture.CreateMany<ExampleEntity>(3).ToList();
             srcEntities.ForEach(async (entity) => await _repository.Create(entity));
-            var filter = new FindManyArgs<MyModuleEntity, MyModuleQueryDto>()
+            var filter = new FindManyArgs<ExampleEntity, ExampleQueryDto>()
             {{
-                Where = new MyModuleQueryDto
+                Where = new ExampleQueryDto
                 {{
-                    MyModuleId = srcEntities[1].MyModuleId
+                    ExampleId = srcEntities[1].ExampleId
                 }}
             }};
 
@@ -506,13 +534,13 @@ namespace {context.CurrProjectName}.Data.Tests
         public async Task GetMany_ReturnsEmptyList_WhenNoIdsMatch()
         {{
             // Arrange
-            var srcEntities = _fixture.CreateMany<MyModuleEntity>(3).ToList();
+            var srcEntities = _fixture.CreateMany<ExampleEntity>(3).ToList();
             srcEntities.ForEach(async (entity) => await _repository.Create(entity));
-            var filter = new FindManyArgs<MyModuleEntity, MyModuleQueryDto>()
+            var filter = new FindManyArgs<ExampleEntity, ExampleQueryDto>()
             {{
-                Where = new MyModuleQueryDto
+                Where = new ExampleQueryDto
                 {{
-                    MyModuleId = -1
+                    ExampleId = -1
                 }}
             }};
 
@@ -528,13 +556,13 @@ namespace {context.CurrProjectName}.Data.Tests
         public async Task GetMeta_ReturnsCorrectMetadata()
         {{
             // Arrange
-            var srcEntities = _fixture.CreateMany<MyModuleEntity>(3).ToList();
+            var srcEntities = _fixture.CreateMany<ExampleEntity>(3).ToList();
             srcEntities.ForEach(async (entity) => await _repository.Create(entity));
-            var filter = new FindManyArgs<MyModuleEntity, MyModuleQueryDto>()
+            var filter = new FindManyArgs<ExampleEntity, ExampleQueryDto>()
             {{
-                Where = new MyModuleQueryDto
+                Where = new ExampleQueryDto
                 {{
-                    MyModuleId = srcEntities[1].MyModuleId
+                    ExampleId = srcEntities[1].ExampleId
                 }}
             }};
 

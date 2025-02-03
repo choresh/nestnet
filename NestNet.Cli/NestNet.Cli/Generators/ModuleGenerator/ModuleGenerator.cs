@@ -21,7 +21,7 @@ namespace NestNet.Cli.Generators.ModuleGenerator
             public required string PluralizedModuleName { get; set; }
 
             /// <summary>
-            /// Generate database support (entity + dao).
+            /// Generate database support (entity).
             /// </summary>
             public bool GenerateDbSupport { get; set; } = true;
 
@@ -122,7 +122,7 @@ namespace NestNet.Cli.Generators.ModuleGenerator
             string moduleName = GetModuleName();
 
             // First ask about DB support since it's the foundation
-            bool generateDbSupport = true; // AnsiConsole.Confirm("Generate database support (entity + dao)?", true);
+            bool generateDbSupport = true; // AnsiConsole.Confirm("Generate database support (entity)?", true);
 
             // Only ask about service if DB support is enabled
             bool generateService = false;

@@ -65,8 +65,7 @@ class Program
         Console.WriteLine("  Generate new module (in application):");
         Console.WriteLine("    A generated module contains:");
         Console.WriteLine("      * Sample Entity");
-        Console.WriteLine("      * DAO");
-        Console.WriteLine("      * DTOs (create/update/result)");
+        Console.WriteLine("      * DTOs (create/update/result/query)");
         Console.WriteLine("      * CRUD Service (optional)");
         Console.WriteLine("      * CRUD Controller (optional)");
         Console.WriteLine("    The '--service' and '--controller' define whether or not to generate those layers, defaults are 'true'");
@@ -76,7 +75,7 @@ class Program
         Console.WriteLine("    A generated resource contains:");
         Console.WriteLine("      * Sample Service");
         Console.WriteLine("      * Sample Controller");
-        Console.WriteLine("    Both of them without DB support (i.e. without CRUD operations, and without Entity/DAO/DTOs)");
+        Console.WriteLine("    Both of them without DB support (i.e. without CRUD operations, and without Entity/DTOs)");
         Console.WriteLine("    Usage: nestnet resource --resource-name <resourceName> [--no-console]");
         Console.WriteLine();
         Console.WriteLine("Usage samples - commands to be generally used by tools:");
@@ -176,7 +175,7 @@ class Program
         
         var moduleNameOption = new Option<string>("--module-name", "Name of the module") { IsRequired = true };
         var pluralizedModuleNameOption = new Option<string>("--pluralized-module-name", "Pluralized name of the module") { IsRequired = true };
-        // var dbSupportOption = new Option<bool>("--db-support", () => true, "Generate database support (entity + dao), default - true");
+        // var dbSupportOption = new Option<bool>("--db-support", () => true, "Generate database support (entity), default - true");
         var serviceOption = new Option<bool>("--service", () => true, "Generate service, default - true" /*"Generate service (requires --db-support)"*/);
         var controllerOption = new Option<bool>("--controller", () => true, "Generate controller, default - true (requires --service)");
 
