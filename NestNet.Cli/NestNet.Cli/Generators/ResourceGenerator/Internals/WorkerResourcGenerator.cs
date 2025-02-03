@@ -44,8 +44,11 @@ namespace NestNet.Cli.Generators.ResourceGenerator
 
         private string GetConsumerContent()
         {
+            var srcProjectName = Context.ProjectContext!.ProjectName.Replace(".Worker", ".Core");
             return $$"""
-                using MassTransit;           
+                using MassTransit;
+                using {{srcProjectName}}.Resources.{{Context.ArtifactName}}.Dtos;
+                using {{srcProjectName}}.Resources.{{Context.ArtifactName}}.Services;
 
                 namespace {{Context.ProjectContext!.ProjectName}}.Resources.{{Context.ArtifactName}}.Consumers;
 
@@ -68,12 +71,15 @@ namespace NestNet.Cli.Generators.ResourceGenerator
 
         private string GetConsumerTestContent()
         {
+            var srcProjectName = Context.ProjectContext!.ProjectName.Replace(".Worker", ".Core");
             return $@"using MassTransit;
 using NSubstitute;
 using Xunit;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
-using {Context.ProjectContext!.ProjectName}.Resources.{Context.ArtifactName}.Services;
+using {srcProjectName}.Resources.{Context.ArtifactName}.Services;
+using {srcProjectName}.Resources.{Context.ArtifactName}.Dtos;
+using {Context.ProjectContext!.ProjectName}.Resources.{Context.ArtifactName}.Consumers;
 
 namespace {Context.ProjectContext!.ProjectName}.Resources.{Context.ArtifactName}.Tests.Consumers
 {{
