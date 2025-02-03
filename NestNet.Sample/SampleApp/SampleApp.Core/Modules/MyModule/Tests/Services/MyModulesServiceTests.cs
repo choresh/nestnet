@@ -5,24 +5,24 @@ using NestNet.Infra.Paginatation;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using System.Text.Json;
-using SampleApp.Core.Modules.MyModules.Daos;
 using SampleApp.Core.Modules.MyModules.Dtos;
 using SampleApp.Core.Modules.MyModules.Services;
 using SampleApp.Core.Modules.MyModules.Entities;
+using SampleApp.Core.Data;
 
 namespace SampleApp.Core.Modules.MyModules.Tests.Services
 {
     public class MyModulesServiceTests
     {
         private readonly IFixture _fixture;
-        private readonly IMyModuleDao _myModuleDao;
+        private readonly IAppRepository _repository;
         private readonly MyModulesService _service;
 
         public MyModulesServiceTests()
         {
             _fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
-            _myModuleDao = _fixture.Freeze<IMyModuleDao>();
-            _service = new MyModulesService(_myModuleDao);
+            _repository = _fixture.Freeze<IAppRepository>();
+            _service = new MyModulesService(_repository);
         }
 
         [Fact]
@@ -31,7 +31,7 @@ namespace SampleApp.Core.Modules.MyModules.Tests.Services
             // Arrange
             var srcEntities = _fixture.CreateMany<MyModuleEntity>(3).ToList();
             var expectedResult = _service.ToResultDtos(srcEntities);
-            _myModuleDao.GetAll().Returns(Task.FromResult<IEnumerable<MyModuleEntity>>(srcEntities));
+            _repository.GetAll<MyModuleEntity>().Returns(Task.FromResult<IEnumerable<MyModuleEntity>>(srcEntities));
 
             // Act
             var result = await _service.GetAll();
@@ -41,7 +41,7 @@ namespace SampleApp.Core.Modules.MyModules.Tests.Services
             Assert.Equal(
                 JsonSerializer.Serialize(expectedResult),
                 JsonSerializer.Serialize(result));
-            await _myModuleDao.Received(1).GetAll();
+            await _repository.Received(1).GetAll<MyModuleEntity>();
         }
 
         [Fact]
@@ -51,7 +51,7 @@ namespace SampleApp.Core.Modules.MyModules.Tests.Services
             var id = _fixture.Create<long>();
             var entity = _fixture.Create<MyModuleEntity>();
             var expectedResult = _service.ToResultDto(entity);
-            _myModuleDao.GetById(Arg.Any<long>()).Returns(Task.FromResult<MyModuleEntity?>(entity));
+            _repository.GetById<MyModuleEntity>(Arg.Any<long>()).Returns(Task.FromResult<MyModuleEntity?>(entity));
 
             // Act
             var result = await _service.GetById(id);
@@ -60,7 +60,7 @@ namespace SampleApp.Core.Modules.MyModules.Tests.Services
             Assert.Equal(
                 JsonSerializer.Serialize(expectedResult),
                 JsonSerializer.Serialize(result));
-            await _myModuleDao.Received(1).GetById(id);
+            await _repository.Received(1).GetById<MyModuleEntity>(id);
         }
 
         [Fact]
@@ -68,14 +68,14 @@ namespace SampleApp.Core.Modules.MyModules.Tests.Services
         {
             // Arrange
             var id = _fixture.Create<long>();
-            _myModuleDao.GetById(Arg.Any<long>()).Returns(Task.FromResult<MyModuleEntity?>(null));
+            _repository.GetById<MyModuleEntity>(Arg.Any<long>()).Returns(Task.FromResult<MyModuleEntity?>(null));
 
             // Act
             var result = await _service.GetById(id);
 
             // Assert
             Assert.Null(result);
-            await _myModuleDao.Received(1).GetById(id);
+            await _repository.Received(1).GetById<MyModuleEntity>(id);
         }
 
         [Fact]
@@ -85,7 +85,7 @@ namespace SampleApp.Core.Modules.MyModules.Tests.Services
             var createDto = _fixture.Create<MyModuleCreateDto>();
             var createdEntity = _service.ToEntity(createDto);
             var expectedResult = _service.ToResultDto(createdEntity);
-            _myModuleDao.Create(Arg.Any<MyModuleEntity>()).Returns(Task.FromResult(createdEntity));
+            _repository.Create(Arg.Any<MyModuleEntity>()).Returns(Task.FromResult(createdEntity));
 
             // Act
             var result = await _service.Create(createDto);
@@ -94,7 +94,7 @@ namespace SampleApp.Core.Modules.MyModules.Tests.Services
             Assert.Equal(
                 JsonSerializer.Serialize(expectedResult),
                 JsonSerializer.Serialize(result.ResultDto));
-            await _myModuleDao.Received(1).Create(Arg.Any<MyModuleEntity>());
+            await _repository.Received(1).Create(Arg.Any<MyModuleEntity>());
         }
 
         [Fact]
@@ -106,7 +106,7 @@ namespace SampleApp.Core.Modules.MyModules.Tests.Services
             var updateDto = _fixture.Create<MyModuleUpdateDto>();
             var updatedEntity = _service.ToEntity(updateDto);
             var expectedResult = _service.ToResultDto(updatedEntity);
-            _myModuleDao.Update(Arg.Any<long>(), Arg.Any<MyModuleUpdateDto>(), Arg.Any<bool>()).Returns(Task.FromResult<MyModuleEntity?>(updatedEntity));
+            _repository.Update<MyModuleUpdateDto, MyModuleEntity>(Arg.Any<long>(), Arg.Any<MyModuleUpdateDto>(), Arg.Any<bool>()).Returns(Task.FromResult<MyModuleEntity?>(updatedEntity));
 
             // Act
             var result = await _service.Update(id, updateDto, ignoreMissingOrNullFields);
@@ -115,7 +115,7 @@ namespace SampleApp.Core.Modules.MyModules.Tests.Services
             Assert.Equal(
                 JsonSerializer.Serialize(expectedResult),
                 JsonSerializer.Serialize(result));
-            await _myModuleDao.Received(1).Update(id, updateDto, ignoreMissingOrNullFields);
+            await _repository.Received(1).Update<MyModuleUpdateDto, MyModuleEntity>(id, updateDto, ignoreMissingOrNullFields);
         }
 
         [Fact]
@@ -125,14 +125,14 @@ namespace SampleApp.Core.Modules.MyModules.Tests.Services
             var ignoreMissingOrNullFields = true;
             var id = _fixture.Create<long>();
             var updateDto = _fixture.Create<MyModuleUpdateDto>();
-            _myModuleDao.Update(Arg.Any<long>(), Arg.Any<MyModuleUpdateDto>(), Arg.Any<bool>()).Returns(Task.FromResult<MyModuleEntity?>(null));
+            _repository.Update<MyModuleUpdateDto, MyModuleEntity>(Arg.Any<long>(), Arg.Any<MyModuleUpdateDto>(), Arg.Any<bool>()).Returns(Task.FromResult<MyModuleEntity?>(null));
 
             // Act
             var result = await _service.Update(id, updateDto, ignoreMissingOrNullFields);
 
             // Assert
             Assert.Null(result);
-            await _myModuleDao.Received(1).Update(id, updateDto, ignoreMissingOrNullFields);
+            await _repository.Received(1).Update<MyModuleUpdateDto, MyModuleEntity>(id, updateDto, ignoreMissingOrNullFields);
         }
 
         [Fact]
@@ -144,7 +144,7 @@ namespace SampleApp.Core.Modules.MyModules.Tests.Services
             var updateDto = _fixture.Create<MyModuleUpdateDto>();
             var updatedEntity = _service.ToEntity(updateDto);
             var expectedResult = _service.ToResultDto(updatedEntity);
-            _myModuleDao.Update(Arg.Any<long>(), Arg.Any<MyModuleUpdateDto>(), Arg.Any<bool>()).Returns(Task.FromResult<MyModuleEntity?>(updatedEntity));
+            _repository.Update<MyModuleUpdateDto, MyModuleEntity>(Arg.Any<long>(), Arg.Any<MyModuleUpdateDto>(), Arg.Any<bool>()).Returns(Task.FromResult<MyModuleEntity?>(updatedEntity));
 
             // Act
             var result = await _service.Update(id, updateDto, ignoreMissingOrNullFields);
@@ -153,7 +153,7 @@ namespace SampleApp.Core.Modules.MyModules.Tests.Services
             Assert.Equal(
                 JsonSerializer.Serialize(expectedResult),
                 JsonSerializer.Serialize(result));
-            await _myModuleDao.Received(1).Update(id, updateDto, ignoreMissingOrNullFields);
+            await _repository.Received(1).Update<MyModuleUpdateDto, MyModuleEntity>(id, updateDto, ignoreMissingOrNullFields);
         }
 
         [Fact]
@@ -163,14 +163,14 @@ namespace SampleApp.Core.Modules.MyModules.Tests.Services
             var ignoreMissingOrNullFields = false;
             var id = _fixture.Create<long>();
             var updateDto = _fixture.Create<MyModuleUpdateDto>();
-            _myModuleDao.Update(Arg.Any<long>(), Arg.Any<MyModuleUpdateDto>(), Arg.Any<bool>()).Returns(Task.FromResult<MyModuleEntity?>(null));
+            _repository.Update<MyModuleUpdateDto, MyModuleEntity>(Arg.Any<long>(), Arg.Any<MyModuleUpdateDto>(), Arg.Any<bool>()).Returns(Task.FromResult<MyModuleEntity?>(null));
 
             // Act
             var result = await _service.Update(id, updateDto, ignoreMissingOrNullFields);
 
             // Assert
             Assert.Null(result);
-            await _myModuleDao.Received(1).Update(id, updateDto, ignoreMissingOrNullFields);
+            await _repository.Received(1).Update<MyModuleUpdateDto, MyModuleEntity>(id, updateDto, ignoreMissingOrNullFields);
         }
 
         [Fact]
@@ -179,14 +179,14 @@ namespace SampleApp.Core.Modules.MyModules.Tests.Services
             // Arrange
             var id = _fixture.Create<long>();
             var entity = _fixture.Create<MyModuleEntity>();
-            _myModuleDao.Delete(Arg.Any<long>()).Returns(Task.FromResult(true));
+            _repository.Delete<MyModuleEntity>(Arg.Any<long>()).Returns(Task.FromResult(true));
 
             // Act
             var found = await _service.Delete(id);
 
             // Assert
             Assert.True(found);
-            await _myModuleDao.Received(1).Delete(id);
+            await _repository.Received(1).Delete<MyModuleEntity>(id);
         }
 
         [Fact]
@@ -194,14 +194,14 @@ namespace SampleApp.Core.Modules.MyModules.Tests.Services
         {
             // Arrange
             var id = _fixture.Create<long>();
-            _myModuleDao.Delete(Arg.Any<long>()).Returns(Task.FromResult(false));
+            _repository.Delete<MyModuleEntity>(Arg.Any<long>()).Returns(Task.FromResult(false));
 
             // Act
             var found = await _service.Delete(id);
 
             // Assert
             Assert.False(found);
-            await _myModuleDao.Received(1).Delete(id);
+            await _repository.Received(1).Delete<MyModuleEntity>(id);
         }
 
         [Fact]
@@ -249,14 +249,14 @@ namespace SampleApp.Core.Modules.MyModules.Tests.Services
                 FilterValue = safeRequest.FilterCriteria.Select(f => f.Value).ToArray()
             };
 
-            var daoResult = new PaginatedResult<MyModuleEntity>
+            var repositoryResult = new PaginatedResult<MyModuleEntity>
             {
                 Items = srcEntities,
                 TotalCount = srcEntities.Count()
             };
 
-            var expectedResult = _service.ToPaginatedResultDtos(daoResult);
-            _myModuleDao.GetPaginated(Arg.Any<SafePaginationRequest>()).Returns(Task.FromResult(daoResult));
+            var expectedResult = _service.ToPaginatedResultDtos(repositoryResult);
+            _repository.GetPaginated<MyModuleEntity>(Arg.Any<SafePaginationRequest>()).Returns(Task.FromResult(repositoryResult));
 
             // Act
             var result = await _service.GetPaginated(unsafeRequest);
@@ -268,7 +268,7 @@ namespace SampleApp.Core.Modules.MyModules.Tests.Services
             Assert.Equal(
                 JsonSerializer.Serialize(expectedResult.Items),
                 JsonSerializer.Serialize(result.Data.Items));
-            var receivedCalls = _myModuleDao.ReceivedCalls();
+            var receivedCalls = _repository.ReceivedCalls();
             Assert.NotNull(receivedCalls);
             Assert.Single(receivedCalls);
             var receivedCall = receivedCalls.FirstOrDefault();
@@ -321,12 +321,12 @@ namespace SampleApp.Core.Modules.MyModules.Tests.Services
                 FilterOperator = safeRequest.FilterCriteria.Select(f => f.Operator.ToString()).ToArray(),
                 FilterValue = safeRequest.FilterCriteria.Select(f => f.Value).ToArray()
             };
-            var daoResult = new PaginatedResult<MyModuleEntity>
+            var repositoryResult = new PaginatedResult<MyModuleEntity>
             {
                 Items = srcEntities,
                 TotalCount = srcEntities.Count()
             };
-            _myModuleDao.GetPaginated(Arg.Any<SafePaginationRequest>()).Returns(Task.FromResult(daoResult));
+            _repository.GetPaginated<MyModuleEntity>(Arg.Any<SafePaginationRequest>()).Returns(Task.FromResult(repositoryResult));
 
             // Act
             var result = await _service.GetPaginated(unsafeRequest);
@@ -375,12 +375,12 @@ namespace SampleApp.Core.Modules.MyModules.Tests.Services
                 FilterOperator = safeRequest.FilterCriteria.Select(f => f.Operator.ToString() + "Blabla").ToArray(),
                 FilterValue = safeRequest.FilterCriteria.Select(f => f.Value).ToArray()
             };
-            var daoResult = new PaginatedResult<MyModuleEntity>
+            var repositoryResult = new PaginatedResult<MyModuleEntity>
             {
                 Items = srcEntities,
                 TotalCount = srcEntities.Count()
             };
-            _myModuleDao.GetPaginated(Arg.Any<SafePaginationRequest>()).Returns(Task.FromResult(daoResult));
+            _repository.GetPaginated<MyModuleEntity>(Arg.Any<SafePaginationRequest>()).Returns(Task.FromResult(repositoryResult));
 
             // Act
             var result = await _service.GetPaginated(unsafeRequest);
@@ -429,12 +429,12 @@ namespace SampleApp.Core.Modules.MyModules.Tests.Services
                 FilterValue = safeRequest.FilterCriteria.Select(f => f.Value).ToArray()
             };
             var srcEntities = _fixture.CreateMany<MyModuleEntity>(3).ToList();
-            var daoResult = new PaginatedResult<MyModuleEntity>
+            var repositoryResult = new PaginatedResult<MyModuleEntity>
             {
                 Items = srcEntities,
                 TotalCount = srcEntities.Count()
             };
-            _myModuleDao.GetPaginated(Arg.Any<SafePaginationRequest>()).Returns(Task.FromResult(daoResult));
+            _repository.GetPaginated<MyModuleEntity>(Arg.Any<SafePaginationRequest>()).Returns(Task.FromResult(repositoryResult));
 
             // Act
             var result = await _service.GetPaginated(unsafeRequest);
@@ -452,7 +452,7 @@ namespace SampleApp.Core.Modules.MyModules.Tests.Services
             // Arrange
             var srcEntities = _fixture.CreateMany<MyModuleEntity>(3).ToList();
             var expectedResult = _service.ToResultDtos([srcEntities.ToArray()[1]]);
-            _myModuleDao.GetMany(Arg.Any<FindManyArgs<MyModuleEntity, MyModuleQueryDto>>()).Returns(Task.FromResult<IEnumerable<MyModuleEntity>>([srcEntities.ToArray()[1]]));
+            _repository.GetMany(Arg.Any<FindManyArgs<MyModuleEntity, MyModuleQueryDto>>()).Returns(Task.FromResult<IEnumerable<MyModuleEntity>>([srcEntities.ToArray()[1]]));
             var filter = new FindManyArgs<MyModuleEntity, MyModuleQueryDto>()
             {
                 Where = new MyModuleQueryDto
@@ -473,14 +473,14 @@ namespace SampleApp.Core.Modules.MyModules.Tests.Services
                 JsonSerializer.Serialize(result.FirstOrDefault()),
                 true
             );
-            await _myModuleDao.Received(1).GetMany(filter);
+            await _repository.Received(1).GetMany(filter);
         }
 
         [Fact]
         public async Task GetMany_ReturnsEmptyList_WhenNoIdsMatch()
         {
             // Arrange
-            _myModuleDao.GetMany(Arg.Any<FindManyArgs<MyModuleEntity, MyModuleQueryDto>>()).Returns(Task.FromResult<IEnumerable<MyModuleEntity>>([]));
+            _repository.GetMany(Arg.Any<FindManyArgs<MyModuleEntity, MyModuleQueryDto>>()).Returns(Task.FromResult<IEnumerable<MyModuleEntity>>([]));
             var filter = new FindManyArgs<MyModuleEntity, MyModuleQueryDto>()
             {
                 Where = new MyModuleQueryDto
@@ -495,7 +495,7 @@ namespace SampleApp.Core.Modules.MyModules.Tests.Services
             // Assert
             Assert.NotNull(result);
             Assert.Empty(result);
-            await _myModuleDao.Received(1).GetMany(filter);
+            await _repository.Received(1).GetMany(filter);
         }
 
         [Fact]
@@ -503,7 +503,7 @@ namespace SampleApp.Core.Modules.MyModules.Tests.Services
         {
             // Arrange
             var count = _fixture.Create<long>();
-            _myModuleDao.GetMeta(Arg.Any<FindManyArgs<MyModuleEntity, MyModuleQueryDto>>()).Returns(Task.FromResult(new MetadataDto() { Count = count }));
+            _repository.GetMeta(Arg.Any<FindManyArgs<MyModuleEntity, MyModuleQueryDto>>()).Returns(Task.FromResult(new MetadataDto() { Count = count }));
             var filter = new FindManyArgs<MyModuleEntity, MyModuleQueryDto>()
             {
                 Where = new MyModuleQueryDto
@@ -518,7 +518,7 @@ namespace SampleApp.Core.Modules.MyModules.Tests.Services
             // Assert
             Assert.NotNull(result);
             Assert.Equal(count, result.Count);
-            await _myModuleDao.Received(1).GetMeta(filter);
+            await _repository.Received(1).GetMeta(filter);
         }
     }
 }
