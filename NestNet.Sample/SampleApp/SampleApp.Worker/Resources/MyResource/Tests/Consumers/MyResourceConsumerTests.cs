@@ -3,7 +3,9 @@ using NSubstitute;
 using Xunit;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
-using SampleApp.Worker.Resources.MyResource.Services;
+using SampleApp.Core.Resources.MyResource.Services;
+using SampleApp.Worker.Resources.MyResource.Consumers;
+using SampleApp.Core.Resources.MyResource.Dtos;
 
 namespace SampleApp.Worker.Resources.MyResource.Tests.Consumers
 {

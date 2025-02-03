@@ -1,4 +1,6 @@
-using MassTransit;           
+using MassTransit;
+using SampleApp.Core.Resources.MyResource.Dtos;
+using SampleApp.Core.Resources.MyResource.Services;
 
 namespace SampleApp.Worker.Resources.MyResource.Consumers;
 
