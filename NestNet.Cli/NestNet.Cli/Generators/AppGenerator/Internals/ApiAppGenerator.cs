@@ -59,8 +59,8 @@ var builder = WebApplication.CreateBuilder(args);
 // Add MVC controllers to the service container.
 builder.Services.AddControllers();
 
-// Add API explorer to enable API endpoint discovery and documentation
-// This is required for Swagger/OpenAPI to discover API endpoints
+// Add API explorer to enable API endpoint discovery and documentation.
+// This is required for Swagger/OpenAPI to discover API endpoints.
 builder.Services.AddEndpointsApiExplorer();
 
 // Configure Swagger/OpenAPI documentation.
@@ -76,7 +76,7 @@ builder.Services.AddSwaggerGen(c =>
     c.SchemaFilter<QueryDtoSchemaFilter>();
 }});
 
-// Helper function to construct DB connection string from environment variables
+// Helper function to construct DB connection string from environment variables.
 {GetConnectionStringMethod(context.DbType, "")}
 
 var connectionString = CreateConnectionString(args);
@@ -94,7 +94,7 @@ DependencyInjectionHelper.RegisterInjetables(builder.Services, [
     Assembly.Load(""{context.BaseProjectName}.Core"")
 ]);
 
-// Initialize the application
+// Initialize the application.
 var app = builder.Build();
 
 // Enable Swagger UI only in development environment.

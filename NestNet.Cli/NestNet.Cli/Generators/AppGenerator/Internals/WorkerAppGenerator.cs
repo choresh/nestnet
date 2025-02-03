@@ -58,25 +58,25 @@ using {context.CurrProjectName};
 var builder = Host.CreateDefaultBuilder(args)
     .ConfigureServices((hostContext, services) =>
     {{
-        // Helper function to construct DB connection string from environment variables
+        // Helper function to construct DB connection string from environment variables.
         {GetConnectionStringMethod(context.DbType, "\t\t")}
 
         var connectionString = CreateConnectionString(args);
 
-        // Configure Entity Framework with database context
+        // Configure Entity Framework with database context.
         services.AddDbContext<AppDbContext>(options =>
         {{
             {GetDbContextOptionsCode(context.DbType, "connectionString")};
         }});
 
-        // Configure dependency injection for classes with [Injectable] attribute
-        // This scans and register all injectable classes from both the Worker and Core assemblies
+        // Configure dependency injection for classes with [Injectable] attribute.
+        // This scans and register all injectable classes from both the Worker and Core assemblies.
         DependencyInjectionHelper.RegisterInjetables(services, [
             Assembly.GetExecutingAssembly(),
             Assembly.Load(""{context.BaseProjectName}.Core"")
         ]);
 
-        // Add the worker service
+        // Add the worker service.
         services.AddHostedService<Worker>();
     }});
 
