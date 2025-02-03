@@ -2,8 +2,8 @@
 using NestNet.Infra.BaseClasses;
 using NestNet.Infra.Attributes;
 using SampleApp.Core.Modules.MyModules.Dtos;
-using SampleApp.Core.Modules.MyModules.Daos;
 using SampleApp.Core.Modules.MyModules.Entities;
+using SampleApp.Core.Data;
 
 namespace SampleApp.Core.Modules.MyModules.Services
 {
@@ -15,8 +15,8 @@ namespace SampleApp.Core.Modules.MyModules.Services
     [Injectable(LifetimeType.Scoped)]
     public class MyModulesService : CrudServiceBase<MyModuleEntity, MyModuleCreateDto, MyModuleUpdateDto, MyModuleResultDto, MyModuleQueryDto>, IMyModulesService
     {
-        public MyModulesService(IMyModuleDao myModuleDao)
-            : base(myModuleDao)
+        public MyModulesService(IAppRepository appRepository)
+            : base(appRepository)
         {
         }
 
@@ -30,7 +30,7 @@ namespace SampleApp.Core.Modules.MyModules.Services
         //          // Set your custom implementation here.
         //      }
         // 3) In your methods:
-        //    * Base class member '_dao' is accessible.
+        //    * Base class member '_repository' is accessible.
         //    * Base class methods (e.g. 'await base.GetAll()') are accesible.
     }
 }

@@ -226,8 +226,8 @@ namespace {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModul
 using NestNet.Infra.BaseClasses;
 using NestNet.Infra.Attributes;
 using {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModuleName}.Dtos;
-using {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModuleName}.Daos;
 using {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModuleName}.Entities;
+using {Context.ProjectContext!.ProjectName}.Data;
 
 namespace {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModuleName}.Services
 {{
@@ -239,8 +239,8 @@ namespace {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModul
     [Injectable(LifetimeType.Scoped)]
     public class {Context.PluralizedModuleName}Service : CrudServiceBase<{Context.EntityName}, {Context.CreateDtoName}, {Context.UpdateDtoName}, {Context.ResultDtoName}, {Context.QueryDtoName}>, I{Context.PluralizedModuleName}Service
     {{
-        public {Context.PluralizedModuleName}Service(I{Context.ArtifactName}Dao {Context.ParamName}Dao)
-            : base({Context.ParamName}Dao)
+        public {Context.PluralizedModuleName}Service(IAppRepository appRepository)
+            : base(appRepository)
         {{
         }}
 
@@ -254,7 +254,7 @@ namespace {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModul
         //          // Set your custom implementation here.
         //      }}
         // 3) In your methods:
-        //    * Base class member '_dao' is accessible.
+        //    * Base class member '_repository' is accessible.
         //    * Base class methods (e.g. 'await base.GetAll()') are accesible.
     }}
 }}
@@ -604,24 +604,24 @@ using NestNet.Infra.Paginatation;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using System.Text.Json;
-using {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModuleName}.Daos;
 using {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModuleName}.Dtos;
 using {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModuleName}.Services;
 using {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModuleName}.Entities;
+using {Context.ProjectContext!.ProjectName}.Data;
 
 namespace {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModuleName}.Tests.Services
 {{
     public class {Context.PluralizedModuleName}ServiceTests
     {{
         private readonly IFixture _fixture;
-        private readonly I{Context.ArtifactName}Dao _{Context.ParamName}Dao;
+        private readonly IAppRepository _repository;
         private readonly {Context.PluralizedModuleName}Service _service;
 
         public {Context.PluralizedModuleName}ServiceTests()
         {{
             _fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
-            _{Context.ParamName}Dao = _fixture.Freeze<I{Context.ArtifactName}Dao>();
-            _service = new {Context.PluralizedModuleName}Service(_{Context.ParamName}Dao);
+            _repository = _fixture.Freeze<IAppRepository>();
+            _service = new {Context.PluralizedModuleName}Service(_repository);
         }}
 
         [Fact]
@@ -630,7 +630,7 @@ namespace {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModul
             // Arrange
             var srcEntities = _fixture.CreateMany<{Context.EntityName}>(3).ToList();
             var expectedResult = _service.ToResultDtos(srcEntities);
-            _{Context.ParamName}Dao.GetAll().Returns(Task.FromResult<IEnumerable<{Context.EntityName}>>(srcEntities));
+            _repository.GetAll<{Context.EntityName}>().Returns(Task.FromResult<IEnumerable<{Context.EntityName}>>(srcEntities));
 
             // Act
             var result = await _service.GetAll();
@@ -640,7 +640,7 @@ namespace {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModul
             Assert.Equal(
                 JsonSerializer.Serialize(expectedResult),
                 JsonSerializer.Serialize(result));
-            await _{Context.ParamName}Dao.Received(1).GetAll();
+            await _repository.Received(1).GetAll<{Context.EntityName}>();
         }}
 
         [Fact]
@@ -650,7 +650,7 @@ namespace {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModul
             var id = _fixture.Create<long>();
             var entity = _fixture.Create<{Context.EntityName}>();
             var expectedResult = _service.ToResultDto(entity);
-            _{Context.ParamName}Dao.GetById(Arg.Any<long>()).Returns(Task.FromResult<{Context.EntityName}?>(entity));
+            _repository.GetById<{Context.EntityName}>(Arg.Any<long>()).Returns(Task.FromResult<{Context.EntityName}?>(entity));
 
             // Act
             var result = await _service.GetById(id);
@@ -659,7 +659,7 @@ namespace {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModul
             Assert.Equal(
                 JsonSerializer.Serialize(expectedResult),
                 JsonSerializer.Serialize(result));
-            await _{Context.ParamName}Dao.Received(1).GetById(id);
+            await _repository.Received(1).GetById<{Context.EntityName}>(id);
         }}
 
         [Fact]
@@ -667,14 +667,14 @@ namespace {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModul
         {{
             // Arrange
             var id = _fixture.Create<long>();
-            _{Context.ParamName}Dao.GetById(Arg.Any<long>()).Returns(Task.FromResult<{Context.EntityName}?>(null));
+            _repository.GetById<{Context.EntityName}>(Arg.Any<long>()).Returns(Task.FromResult<{Context.EntityName}?>(null));
 
             // Act
             var result = await _service.GetById(id);
 
             // Assert
             Assert.Null(result);
-            await _{Context.ParamName}Dao.Received(1).GetById(id);
+            await _repository.Received(1).GetById<{Context.EntityName}>(id);
         }}
 
         [Fact]
@@ -684,7 +684,7 @@ namespace {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModul
             var createDto = _fixture.Create<{Context.CreateDtoName}>();
             var createdEntity = _service.ToEntity(createDto);
             var expectedResult = _service.ToResultDto(createdEntity);
-            _{Context.ParamName}Dao.Create(Arg.Any<{Context.EntityName}>()).Returns(Task.FromResult(createdEntity));
+            _repository.Create(Arg.Any<{Context.EntityName}>()).Returns(Task.FromResult(createdEntity));
 
             // Act
             var result = await _service.Create(createDto);
@@ -693,7 +693,7 @@ namespace {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModul
             Assert.Equal(
                 JsonSerializer.Serialize(expectedResult),
                 JsonSerializer.Serialize(result.ResultDto));
-            await _{Context.ParamName}Dao.Received(1).Create(Arg.Any<{Context.EntityName}>());
+            await _repository.Received(1).Create(Arg.Any<{Context.EntityName}>());
         }}
 
         [Fact]
@@ -705,7 +705,7 @@ namespace {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModul
             var updateDto = _fixture.Create<{Context.UpdateDtoName}>();
             var updatedEntity = _service.ToEntity(updateDto);
             var expectedResult = _service.ToResultDto(updatedEntity);
-            _{Context.ParamName}Dao.Update(Arg.Any<long>(), Arg.Any<{Context.UpdateDtoName}>(), Arg.Any<bool>()).Returns(Task.FromResult<{Context.EntityName}?>(updatedEntity));
+            _repository.Update<{Context.UpdateDtoName}, {Context.EntityName}>(Arg.Any<long>(), Arg.Any<{Context.UpdateDtoName}>(), Arg.Any<bool>()).Returns(Task.FromResult<{Context.EntityName}?>(updatedEntity));
 
             // Act
             var result = await _service.Update(id, updateDto, ignoreMissingOrNullFields);
@@ -714,7 +714,7 @@ namespace {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModul
             Assert.Equal(
                 JsonSerializer.Serialize(expectedResult),
                 JsonSerializer.Serialize(result));
-            await _{Context.ParamName}Dao.Received(1).Update(id, updateDto, ignoreMissingOrNullFields);
+            await _repository.Received(1).Update<{Context.UpdateDtoName}, {Context.EntityName}>(id, updateDto, ignoreMissingOrNullFields);
         }}
 
         [Fact]
@@ -724,14 +724,14 @@ namespace {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModul
             var ignoreMissingOrNullFields = true;
             var id = _fixture.Create<long>();
             var updateDto = _fixture.Create<{Context.UpdateDtoName}>();
-            _{Context.ParamName}Dao.Update(Arg.Any<long>(), Arg.Any<{Context.UpdateDtoName}>(), Arg.Any<bool>()).Returns(Task.FromResult<{Context.EntityName}?>(null));
+            _repository.Update<{Context.UpdateDtoName}, {Context.EntityName}>(Arg.Any<long>(), Arg.Any<{Context.UpdateDtoName}>(), Arg.Any<bool>()).Returns(Task.FromResult<{Context.EntityName}?>(null));
 
             // Act
             var result = await _service.Update(id, updateDto, ignoreMissingOrNullFields);
 
             // Assert
             Assert.Null(result);
-            await _{Context.ParamName}Dao.Received(1).Update(id, updateDto, ignoreMissingOrNullFields);
+            await _repository.Received(1).Update<{Context.UpdateDtoName}, {Context.EntityName}>(id, updateDto, ignoreMissingOrNullFields);
         }}
 
         [Fact]
@@ -743,7 +743,7 @@ namespace {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModul
             var updateDto = _fixture.Create<{Context.UpdateDtoName}>();
             var updatedEntity = _service.ToEntity(updateDto);
             var expectedResult = _service.ToResultDto(updatedEntity);
-            _{Context.ParamName}Dao.Update(Arg.Any<long>(), Arg.Any<{Context.UpdateDtoName}>(), Arg.Any<bool>()).Returns(Task.FromResult<{Context.EntityName}?>(updatedEntity));
+            _repository.Update<{Context.UpdateDtoName}, {Context.EntityName}>(Arg.Any<long>(), Arg.Any<{Context.UpdateDtoName}>(), Arg.Any<bool>()).Returns(Task.FromResult<{Context.EntityName}?>(updatedEntity));
 
             // Act
             var result = await _service.Update(id, updateDto, ignoreMissingOrNullFields);
@@ -752,7 +752,7 @@ namespace {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModul
             Assert.Equal(
                 JsonSerializer.Serialize(expectedResult),
                 JsonSerializer.Serialize(result));
-            await _{Context.ParamName}Dao.Received(1).Update(id, updateDto, ignoreMissingOrNullFields);
+            await _repository.Received(1).Update<{Context.UpdateDtoName}, {Context.EntityName}>(id, updateDto, ignoreMissingOrNullFields);
         }}
 
         [Fact]
@@ -762,14 +762,14 @@ namespace {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModul
             var ignoreMissingOrNullFields = false;
             var id = _fixture.Create<long>();
             var updateDto = _fixture.Create<{Context.UpdateDtoName}>();
-            _{Context.ParamName}Dao.Update(Arg.Any<long>(), Arg.Any<{Context.UpdateDtoName}>(), Arg.Any<bool>()).Returns(Task.FromResult<{Context.EntityName}?>(null));
+            _repository.Update<{Context.UpdateDtoName}, {Context.EntityName}>(Arg.Any<long>(), Arg.Any<{Context.UpdateDtoName}>(), Arg.Any<bool>()).Returns(Task.FromResult<{Context.EntityName}?>(null));
 
             // Act
             var result = await _service.Update(id, updateDto, ignoreMissingOrNullFields);
 
             // Assert
             Assert.Null(result);
-            await _{Context.ParamName}Dao.Received(1).Update(id, updateDto, ignoreMissingOrNullFields);
+            await _repository.Received(1).Update<{Context.UpdateDtoName}, {Context.EntityName}>(id, updateDto, ignoreMissingOrNullFields);
         }}
 
         [Fact]
@@ -778,14 +778,14 @@ namespace {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModul
             // Arrange
             var id = _fixture.Create<long>();
             var entity = _fixture.Create<{Context.EntityName}>();
-            _{Context.ParamName}Dao.Delete(Arg.Any<long>()).Returns(Task.FromResult(true));
+            _repository.Delete<{Context.EntityName}>(Arg.Any<long>()).Returns(Task.FromResult(true));
 
             // Act
             var found = await _service.Delete(id);
 
             // Assert
             Assert.True(found);
-            await _{Context.ParamName}Dao.Received(1).Delete(id);
+            await _repository.Received(1).Delete<{Context.EntityName}>(id);
         }}
 
         [Fact]
@@ -793,14 +793,14 @@ namespace {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModul
         {{
             // Arrange
             var id = _fixture.Create<long>();
-            _{Context.ParamName}Dao.Delete(Arg.Any<long>()).Returns(Task.FromResult(false));
+            _repository.Delete<{Context.EntityName}>(Arg.Any<long>()).Returns(Task.FromResult(false));
 
             // Act
             var found = await _service.Delete(id);
 
             // Assert
             Assert.False(found);
-            await _{Context.ParamName}Dao.Received(1).Delete(id);
+            await _repository.Received(1).Delete<{Context.EntityName}>(id);
         }}
 
         [Fact]
@@ -848,14 +848,14 @@ namespace {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModul
                 FilterValue = safeRequest.FilterCriteria.Select(f => f.Value).ToArray()
             }};
 
-            var daoResult = new PaginatedResult<{Context.EntityName}>
+            var repositoryResult = new PaginatedResult<{Context.EntityName}>
             {{
                 Items = srcEntities,
                 TotalCount = srcEntities.Count()
             }};
 
-            var expectedResult = _service.ToPaginatedResultDtos(daoResult);
-            _{Context.ParamName}Dao.GetPaginated(Arg.Any<SafePaginationRequest>()).Returns(Task.FromResult(daoResult));
+            var expectedResult = _service.ToPaginatedResultDtos(repositoryResult);
+            _repository.GetPaginated<{Context.EntityName}>(Arg.Any<SafePaginationRequest>()).Returns(Task.FromResult(repositoryResult));
 
             // Act
             var result = await _service.GetPaginated(unsafeRequest);
@@ -867,7 +867,7 @@ namespace {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModul
             Assert.Equal(
                 JsonSerializer.Serialize(expectedResult.Items),
                 JsonSerializer.Serialize(result.Data.Items));
-            var receivedCalls = _{Context.ParamName}Dao.ReceivedCalls();
+            var receivedCalls = _repository.ReceivedCalls();
             Assert.NotNull(receivedCalls);
             Assert.Single(receivedCalls);
             var receivedCall = receivedCalls.FirstOrDefault();
@@ -920,12 +920,12 @@ namespace {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModul
                 FilterOperator = safeRequest.FilterCriteria.Select(f => f.Operator.ToString()).ToArray(),
                 FilterValue = safeRequest.FilterCriteria.Select(f => f.Value).ToArray()
             }};
-            var daoResult = new PaginatedResult<{Context.EntityName}>
+            var repositoryResult = new PaginatedResult<{Context.EntityName}>
             {{
                 Items = srcEntities,
                 TotalCount = srcEntities.Count()
             }};
-            _{Context.ParamName}Dao.GetPaginated(Arg.Any<SafePaginationRequest>()).Returns(Task.FromResult(daoResult));
+            _repository.GetPaginated<{Context.EntityName}>(Arg.Any<SafePaginationRequest>()).Returns(Task.FromResult(repositoryResult));
 
             // Act
             var result = await _service.GetPaginated(unsafeRequest);
@@ -974,12 +974,12 @@ namespace {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModul
                 FilterOperator = safeRequest.FilterCriteria.Select(f => f.Operator.ToString() + ""Blabla"").ToArray(),
                 FilterValue = safeRequest.FilterCriteria.Select(f => f.Value).ToArray()
             }};
-            var daoResult = new PaginatedResult<{Context.EntityName}>
+            var repositoryResult = new PaginatedResult<{Context.EntityName}>
             {{
                 Items = srcEntities,
                 TotalCount = srcEntities.Count()
             }};
-            _{Context.ParamName}Dao.GetPaginated(Arg.Any<SafePaginationRequest>()).Returns(Task.FromResult(daoResult));
+            _repository.GetPaginated<{Context.EntityName}>(Arg.Any<SafePaginationRequest>()).Returns(Task.FromResult(repositoryResult));
 
             // Act
             var result = await _service.GetPaginated(unsafeRequest);
@@ -1028,12 +1028,12 @@ namespace {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModul
                 FilterValue = safeRequest.FilterCriteria.Select(f => f.Value).ToArray()
             }};
             var srcEntities = _fixture.CreateMany<{Context.EntityName}>(3).ToList();
-            var daoResult = new PaginatedResult<{Context.EntityName}>
+            var repositoryResult = new PaginatedResult<{Context.EntityName}>
             {{
                 Items = srcEntities,
                 TotalCount = srcEntities.Count()
             }};
-            _{Context.ParamName}Dao.GetPaginated(Arg.Any<SafePaginationRequest>()).Returns(Task.FromResult(daoResult));
+            _repository.GetPaginated<{Context.EntityName}>(Arg.Any<SafePaginationRequest>()).Returns(Task.FromResult(repositoryResult));
 
             // Act
             var result = await _service.GetPaginated(unsafeRequest);
@@ -1051,7 +1051,7 @@ namespace {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModul
             // Arrange
             var srcEntities = _fixture.CreateMany<{Context.EntityName}>(3).ToList();
             var expectedResult = _service.ToResultDtos([srcEntities.ToArray()[1]]);
-            _{Context.ParamName}Dao.GetMany(Arg.Any<FindManyArgs<{Context.EntityName}, {Context.QueryDtoName}>>()).Returns(Task.FromResult<IEnumerable<{Context.EntityName}>>([srcEntities.ToArray()[1]]));
+            _repository.GetMany(Arg.Any<FindManyArgs<{Context.EntityName}, {Context.QueryDtoName}>>()).Returns(Task.FromResult<IEnumerable<{Context.EntityName}>>([srcEntities.ToArray()[1]]));
             var filter = new FindManyArgs<{Context.EntityName}, {Context.QueryDtoName}>()
             {{
                 Where = new {Context.QueryDtoName}
@@ -1072,14 +1072,14 @@ namespace {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModul
                 JsonSerializer.Serialize(result.FirstOrDefault()),
                 true
             );
-            await _{Context.ParamName}Dao.Received(1).GetMany(filter);
+            await _repository.Received(1).GetMany(filter);
         }}
 
         [Fact]
         public async Task GetMany_ReturnsEmptyList_WhenNoIdsMatch()
         {{
             // Arrange
-            _{Context.ParamName}Dao.GetMany(Arg.Any<FindManyArgs<{Context.EntityName}, {Context.QueryDtoName}>>()).Returns(Task.FromResult<IEnumerable<{Context.EntityName}>>([]));
+            _repository.GetMany(Arg.Any<FindManyArgs<{Context.EntityName}, {Context.QueryDtoName}>>()).Returns(Task.FromResult<IEnumerable<{Context.EntityName}>>([]));
             var filter = new FindManyArgs<{Context.EntityName}, {Context.QueryDtoName}>()
             {{
                 Where = new {Context.QueryDtoName}
@@ -1094,7 +1094,7 @@ namespace {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModul
             // Assert
             Assert.NotNull(result);
             Assert.Empty(result);
-            await _{Context.ParamName}Dao.Received(1).GetMany(filter);
+            await _repository.Received(1).GetMany(filter);
         }}
 
         [Fact]
@@ -1102,7 +1102,7 @@ namespace {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModul
         {{
             // Arrange
             var count = _fixture.Create<long>();
-            _{Context.ParamName}Dao.GetMeta(Arg.Any<FindManyArgs<{Context.EntityName}, {Context.QueryDtoName}>>()).Returns(Task.FromResult(new MetadataDto() {{ Count = count }}));
+            _repository.GetMeta(Arg.Any<FindManyArgs<{Context.EntityName}, {Context.QueryDtoName}>>()).Returns(Task.FromResult(new MetadataDto() {{ Count = count }}));
             var filter = new FindManyArgs<{Context.EntityName}, {Context.QueryDtoName}>()
             {{
                 Where = new {Context.QueryDtoName}
@@ -1117,7 +1117,7 @@ namespace {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModul
             // Assert
             Assert.NotNull(result);
             Assert.Equal(count, result.Count);
-            await _{Context.ParamName}Dao.Received(1).GetMeta(filter);
+            await _repository.Received(1).GetMeta(filter);
         }}
     }}
 }}";

@@ -35,12 +35,17 @@ namespace NestNet.Cli.Generators.CoreGenerator
                     return;
                 }
 
+                var tarDataDir = Path.Combine(context.CorePath, "Data");
+                Directory.CreateDirectory(tarDataDir);
+
                 GenerateRootFiles(context);
 
                 // Create core directory structure
                 Directory.CreateDirectory(context.CorePath);
                 GenerateProjectFile(context);
-                GenerateDbContext(context);
+                GenerateAppDbContext(context, tarDataDir);
+                GenerateAppRepository(context, tarDataDir);
+                GenerateAppRepositoryTest(context, tarDataDir);
 
                 AnsiConsole.MarkupLine(Helpers.FormatMessage("\nCore generation - ended successfully", "green"));
             }
@@ -147,9 +152,9 @@ lib
             File.WriteAllText(Path.Combine(context.CorePath, $"{context.CurrProjectName}.csproj"), csprojContent);
         }
 
-        private static void GenerateDbContext(CoreGenerationContext context)
+        private static void GenerateAppDbContext(CoreGenerationContext context, string tarDataDir)
         {
-            var dbContextContent = $@"using Microsoft.EntityFrameworkCore;
+            var appDbContextContent = $@"using Microsoft.EntityFrameworkCore;
 using NestNet.Infra.BaseClasses;
 using System.Reflection;
 
@@ -167,9 +172,385 @@ namespace {context.CurrProjectName}.Data
     }}
 }}";
 
-            var tarDir = Path.Combine(context.CorePath, "Data");
-            Directory.CreateDirectory(tarDir);
-            File.WriteAllText(Path.Combine(tarDir, "AppDbContext.cs"), dbContextContent);
+            File.WriteAllText(Path.Combine(tarDataDir, "AppDbContext.cs"), appDbContextContent);
+        }
+
+        private static void GenerateAppRepository(CoreGenerationContext context, string tarDataDir)
+        {
+            var appRepositoryContent = $@"#pragma warning disable IDE0290 // Use primary constructor
+using NestNet.Infra.BaseClasses;
+using NestNet.Infra.Attributes;
+using Microsoft.EntityFrameworkCore;
+
+namespace {context.CurrProjectName}.Data
+{{
+    public interface IAppRepository : IAppRepositoryBase
+    {{
+        // If you add methods to derived class - expose them here.
+    }}
+
+    [Injectable(LifetimeType.Scoped)]
+    public class AppRepository : AppRepositoryBase
+    {{
+        public AppRepository(DbContext context)
+            : base(context)
+        {{
+        }}
+
+        // How to customise this class:
+        // 1) You can add here 'custom' methods (methods for operations not supported by the base class).
+        // 2) You can override here base class methods if needed:
+        //    * Add methods with the same name and signature as in the base class.
+        //    * For example:
+        //      public virtual async Task<IEnumerable<TEntity>> GetAll<TEntity>() where TEntity : class, IEntity
+        //      {{
+        //          // Set your custom implementation here.
+        //      }}
+        // 3) In your methods:
+        //    * Base class member '_context' are accessible.
+        //    * Base class methods (e.g. 'await base.GetAll()') are accesible.
+    }}
+}}
+
+#pragma warning restore IDE0290 // Use primary constructor";
+
+            File.WriteAllText(Path.Combine(tarDataDir, "AppRepository.cs"), appRepositoryContent);
+        }
+
+        private static void GenerateAppRepositoryTest(CoreGenerationContext context, string tarDataDir)
+        {
+            var appRepositoryTestContent = $@"using Xunit;
+using NestNet.Infra.Query;
+using NestNet.Infra.Helpers;
+using NestNet.Infra.Paginatation;
+using AutoFixture;
+using AutoFixture.AutoNSubstitute;
+using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
+using {context.CurrProjectName}.Modules.MyModules.Dtos;
+using {context.CurrProjectName}.Modules.MyModules.Entities;
+
+namespace {context.CurrProjectName}.Data.Tests
+{{
+    public class AppRepositoryTests : IDisposable, IAsyncLifetime
+    {{
+        private readonly IFixture _fixture;
+        private readonly AppDbContext _context;
+        private readonly AppRepository _repository;
+
+        public AppRepositoryTests()
+        {{
+            _fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
+
+            // Create options for in-memory database
+            var options = new DbContextOptionsBuilder<AppDbContext>()
+                .UseInMemoryDatabase(databaseName: $""TestDb_{{Guid.NewGuid()}}"")  // Unique name per test
+                .Options;
+
+            // Create real context with in-memory database
+            _context = new AppDbContext(options);
+
+            _repository = new AppRepository(_context);
+        }}
+
+        public async Task InitializeAsync()
+        {{
+            // Clean database before each test
+            await _context.Database.EnsureDeletedAsync();
+            await _context.Database.EnsureCreatedAsync();
+        }}
+
+        public Task DisposeAsync()
+        {{
+            return Task.CompletedTask;
+        }}
+
+        public void Dispose()
+        {{
+            _context.Database.EnsureDeleted();
+            _context.Dispose();
+        }}
+
+        [Fact]
+        public async Task GetAll_ReturnsAllItems()
+        {{
+            // Arrange
+            var srcEntities = _fixture.CreateMany<MyModuleEntity>(3).ToList();
+            srcEntities.ForEach(async (entity) => await _repository.Create(entity));
+
+            // Act
+            var result = await _repository.GetAll<MyModuleEntity>();
+
+            // Assert
+            Assert.Equal(srcEntities.Count(), result.Count());
+            Assert.Equal(
+                JsonSerializer.Serialize(srcEntities),
+                JsonSerializer.Serialize(result));
+        }}
+
+        [Fact]
+        public async Task GetById_ReturnsItem_WhenExists()
+        {{
+            // Arrange
+            var srcEntities = _fixture.CreateMany<MyModuleEntity>(3).ToList();
+            srcEntities.ForEach(async (entity) => await _repository.Create(entity));
+
+            // Act
+            var result = await _repository.GetById<MyModuleEntity>(srcEntities[1].MyModuleId);
+
+            // Assert
+            Assert.Equal(
+                JsonSerializer.Serialize(srcEntities[1]),
+                JsonSerializer.Serialize(result));
+        }}
+
+        [Fact]
+        public async Task GetById_ReturnsNull_WhenNotExists()
+        {{
+            // Arrange
+            var id = _fixture.Create<long>();
+
+            // Act
+            var result = await _repository.GetById<MyModuleEntity>(id);
+
+            // Assert
+            Assert.Null(result);
+        }}
+
+        [Fact]
+        public async Task Create_ReturnsCreatedItem()
+        {{
+            // Arrange
+            var srcEntity = _fixture.Create<MyModuleEntity>();
+
+            // Act
+            await _repository.Create(srcEntity);
+
+            // Assert
+            var result = await _repository.GetById<MyModuleEntity>(srcEntity.MyModuleId);
+            Assert.Equal(
+              JsonSerializer.Serialize(srcEntity),
+              JsonSerializer.Serialize(result));
+        }}
+
+        [Fact]
+        public async Task Update_WithIgnoreMissingOrNullFields_True_ReturnsUpdatedItem_WhenExists()
+        {{
+            // Arrange
+            var ignoreMissingOrNullFields = true;
+            var srcEntities = _fixture.CreateMany<MyModuleEntity>(3).ToList();
+            srcEntities.ForEach(async (entity) => await _repository.Create(entity));
+            var updateDto = _fixture.Create<MyModuleUpdateDto>();
+
+            // Act
+            var result = await _repository.Update<MyModuleUpdateDto, MyModuleEntity>(srcEntities[1].MyModuleId, updateDto, ignoreMissingOrNullFields);
+
+            // Assert
+            Assert.NotNull(result);
+            TestsHelper.IsValuesExists(updateDto, result, Assert.Equal);
+        }}
+
+        [Fact]
+        public async Task Update_WithIgnoreMissingOrNullFields_True_ReturnsNull_WhenNotExists()
+        {{
+            // Arrange
+            var ignoreMissingOrNullFields = true;
+            var id = _fixture.Create<long>();
+            var updateDto = _fixture.Create<MyModuleUpdateDto>();
+
+            // Act
+            var result = await _repository.Update<MyModuleUpdateDto, MyModuleEntity>(id, updateDto, ignoreMissingOrNullFields);
+
+            // Assert
+            Assert.Null(result);
+        }}
+
+        [Fact]
+        public async Task Update_WithIgnoreMissingOrNullFields_False_ReturnsUpdatedItem_WhenExists()
+        {{
+            // Arrange
+            var ignoreMissingOrNullFields = false;
+            var srcEntities = _fixture.CreateMany<MyModuleEntity>(3).ToList();
+            srcEntities.ForEach(async (entity) => await _repository.Create(entity));
+            var updateDto = _fixture.Create<MyModuleUpdateDto>();
+
+            // Act
+            var result = await _repository.Update<MyModuleUpdateDto, MyModuleEntity>(srcEntities[1].MyModuleId, updateDto, ignoreMissingOrNullFields);
+
+            // Assert
+            Assert.NotNull(result);
+            TestsHelper.IsValuesExists(updateDto, result, Assert.Equal);
+        }}
+
+        [Fact]
+        public async Task Update_WithIgnoreMissingOrNullFields_False_ReturnsNull_WhenNotExists()
+        {{
+            // Arrange
+            var ignoreMissingOrNullFields = false;
+            var id = _fixture.Create<long>();
+            var updateDto = _fixture.Create<MyModuleUpdateDto>();
+
+            // Act
+            var result = await _repository.Update<MyModuleUpdateDto, MyModuleEntity>(id, updateDto, ignoreMissingOrNullFields);
+
+            // Assert
+            Assert.Null(result);
+        }}
+
+        [Fact]
+        public async Task Delete_ReturnsTrue_WhenExists()
+        {{
+            // Arrange
+            var srcEntities = _fixture.CreateMany<MyModuleEntity>(3).ToList();
+            srcEntities.ForEach(async (entity) => await _repository.Create(entity));
+
+            // Act
+            var found = await _repository.Delete<MyModuleEntity>(srcEntities[1].MyModuleId);
+
+            // Assert
+            Assert.True(found);
+        }}
+
+        [Fact]
+        public async Task Delete_ReturnsFalse_WhenNotExists()
+        {{
+            // Arrange
+            var id = _fixture.Create<long>();
+
+            // Act
+            var found = await _repository.Delete<MyModuleEntity>(id);
+
+            // Assert
+            Assert.False(found);
+        }}
+
+        [Fact]
+        public async Task GetPaginated_ReturnsPaginatedItems()
+        {{
+            // Arrange
+            var srcEntities = _fixture.CreateMany<MyModuleEntity>(3)
+               .Select((entity, index) =>
+               {{
+                   entity.MyModuleId = index + 1;
+                   return entity;
+               }})
+               .ToList();
+            srcEntities.ForEach(async (entity) => await _repository.Create(entity));
+            var value = srcEntities[1].MyModuleId;
+            var propertyName = ""MyModuleId"";
+            var resultItems = srcEntities
+                  .Where(e => e.MyModuleId != value)
+                  .OrderByDescending(e => e.MyModuleId);
+            var safeRequest = new SafePaginationRequest()
+            {{
+                IncludeTotalCount = true,
+                SortCriteria = new List<SortCriteria>()
+                {{
+                    new SortCriteria()
+                    {{
+                        PropertyName = propertyName,
+                        SortDirection = SortDirection.Desc
+                    }}
+                }},
+                FilterCriteria = new List<FilterCriteria>()
+                {{
+                    new FilterCriteria()
+                    {{
+                        PropertyName = propertyName,
+                        Value = value.ToString(),
+                        Operator = FilterOperator.NotEquals
+                    }}
+                }}
+            }};
+            var expectedResult = new PaginatedResult<MyModuleEntity>
+            {{
+                Items = resultItems,
+                TotalCount = resultItems.Count()
+            }};
+
+            // Act
+            var result = await _repository.GetPaginated<MyModuleEntity>(safeRequest);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(expectedResult.TotalCount, result.TotalCount);
+            Assert.Equal(
+                JsonSerializer.Serialize(expectedResult.Items),
+                JsonSerializer.Serialize(result.Items));
+        }}
+
+        [Fact]
+        public async Task GetMany_ReturnsMatchingItems()
+        {{
+            // Arrange
+            var srcEntities = _fixture.CreateMany<MyModuleEntity>(3).ToList();
+            srcEntities.ForEach(async (entity) => await _repository.Create(entity));
+            var filter = new FindManyArgs<MyModuleEntity, MyModuleQueryDto>()
+            {{
+                Where = new MyModuleQueryDto
+                {{
+                    MyModuleId = srcEntities[1].MyModuleId
+                }}
+            }};
+
+            // Act
+            var result = await _repository.GetMany(filter);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Single(result);
+            Assert.Equal(srcEntities[1], result.FirstOrDefault());
+        }}
+
+        [Fact]
+        public async Task GetMany_ReturnsEmptyList_WhenNoIdsMatch()
+        {{
+            // Arrange
+            var srcEntities = _fixture.CreateMany<MyModuleEntity>(3).ToList();
+            srcEntities.ForEach(async (entity) => await _repository.Create(entity));
+            var filter = new FindManyArgs<MyModuleEntity, MyModuleQueryDto>()
+            {{
+                Where = new MyModuleQueryDto
+                {{
+                    MyModuleId = -1
+                }}
+            }};
+
+            // Act
+            var result = await _repository.GetMany(filter);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Empty(result);
+        }}
+
+        [Fact]
+        public async Task GetMeta_ReturnsCorrectMetadata()
+        {{
+            // Arrange
+            var srcEntities = _fixture.CreateMany<MyModuleEntity>(3).ToList();
+            srcEntities.ForEach(async (entity) => await _repository.Create(entity));
+            var filter = new FindManyArgs<MyModuleEntity, MyModuleQueryDto>()
+            {{
+                Where = new MyModuleQueryDto
+                {{
+                    MyModuleId = srcEntities[1].MyModuleId
+                }}
+            }};
+
+            // Act
+            var result = await _repository.GetMeta(filter);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(1, result.Count);
+        }}
+    }}
+}}";
+
+            var tarDataTestsDir = Path.Combine(tarDataDir, "Tests");
+            Directory.CreateDirectory(tarDataTestsDir);
+            File.WriteAllText(Path.Combine(tarDataTestsDir, "AppRepositoryTests.cs"), appRepositoryTestContent);
         }
 
         private static CoreGenerationContext? CreateCoreGenerationContext(InputParams? inputParams = null)

@@ -6,20 +6,18 @@ using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
-using SampleApp.Core.Modules.MyModules.Daos;
 using SampleApp.Core.Modules.MyModules.Dtos;
 using SampleApp.Core.Modules.MyModules.Entities;
-using SampleApp.Core.Data;
 
-namespace SampleApp.Core.Modules.MyModules.Tests.Daos
+namespace SampleApp.Core.Data.Tests
 {
-    public class MyModulesDaoTests : IDisposable, IAsyncLifetime
+    public class AppRepositoryTests : IDisposable, IAsyncLifetime
     {
         private readonly IFixture _fixture;
         private readonly AppDbContext _context;
-        private readonly MyModuleDao _dao;
+        private readonly AppRepository _repository;
 
-        public MyModulesDaoTests()
+        public AppRepositoryTests()
         {
             _fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
 
@@ -31,7 +29,7 @@ namespace SampleApp.Core.Modules.MyModules.Tests.Daos
             // Create real context with in-memory database
             _context = new AppDbContext(options);
 
-            _dao = new MyModuleDao(_context);
+            _repository = new AppRepository(_context);
         }
 
         public async Task InitializeAsync()
@@ -45,7 +43,7 @@ namespace SampleApp.Core.Modules.MyModules.Tests.Daos
         {
             return Task.CompletedTask;
         }
-    
+
         public void Dispose()
         {
             _context.Database.EnsureDeleted();
@@ -57,10 +55,10 @@ namespace SampleApp.Core.Modules.MyModules.Tests.Daos
         {
             // Arrange
             var srcEntities = _fixture.CreateMany<MyModuleEntity>(3).ToList();
-            srcEntities.ForEach(async (entity) => await _dao.Create(entity));
+            srcEntities.ForEach(async (entity) => await _repository.Create(entity));
 
             // Act
-            var result = await _dao.GetAll();
+            var result = await _repository.GetAll<MyModuleEntity>();
 
             // Assert
             Assert.Equal(srcEntities.Count(), result.Count());
@@ -74,10 +72,10 @@ namespace SampleApp.Core.Modules.MyModules.Tests.Daos
         {
             // Arrange
             var srcEntities = _fixture.CreateMany<MyModuleEntity>(3).ToList();
-            srcEntities.ForEach(async (entity) => await _dao.Create(entity));
+            srcEntities.ForEach(async (entity) => await _repository.Create(entity));
 
             // Act
-            var result = await _dao.GetById(srcEntities[1].MyModuleId);
+            var result = await _repository.GetById<MyModuleEntity>(srcEntities[1].MyModuleId);
 
             // Assert
             Assert.Equal(
@@ -90,9 +88,9 @@ namespace SampleApp.Core.Modules.MyModules.Tests.Daos
         {
             // Arrange
             var id = _fixture.Create<long>();
-          
+
             // Act
-            var result = await _dao.GetById(id);
+            var result = await _repository.GetById<MyModuleEntity>(id);
 
             // Assert
             Assert.Null(result);
@@ -105,10 +103,10 @@ namespace SampleApp.Core.Modules.MyModules.Tests.Daos
             var srcEntity = _fixture.Create<MyModuleEntity>();
 
             // Act
-            await _dao.Create(srcEntity);
+            await _repository.Create(srcEntity);
 
             // Assert
-            var result = await _dao.GetById(srcEntity.MyModuleId);
+            var result = await _repository.GetById<MyModuleEntity>(srcEntity.MyModuleId);
             Assert.Equal(
               JsonSerializer.Serialize(srcEntity),
               JsonSerializer.Serialize(result));
@@ -120,11 +118,11 @@ namespace SampleApp.Core.Modules.MyModules.Tests.Daos
             // Arrange
             var ignoreMissingOrNullFields = true;
             var srcEntities = _fixture.CreateMany<MyModuleEntity>(3).ToList();
-            srcEntities.ForEach(async (entity) => await _dao.Create(entity));
+            srcEntities.ForEach(async (entity) => await _repository.Create(entity));
             var updateDto = _fixture.Create<MyModuleUpdateDto>();
 
             // Act
-            var result = await _dao.Update(srcEntities[1].MyModuleId, updateDto, ignoreMissingOrNullFields);
+            var result = await _repository.Update<MyModuleUpdateDto, MyModuleEntity>(srcEntities[1].MyModuleId, updateDto, ignoreMissingOrNullFields);
 
             // Assert
             Assert.NotNull(result);
@@ -140,7 +138,7 @@ namespace SampleApp.Core.Modules.MyModules.Tests.Daos
             var updateDto = _fixture.Create<MyModuleUpdateDto>();
 
             // Act
-            var result = await _dao.Update(id, updateDto, ignoreMissingOrNullFields);
+            var result = await _repository.Update<MyModuleUpdateDto, MyModuleEntity>(id, updateDto, ignoreMissingOrNullFields);
 
             // Assert
             Assert.Null(result);
@@ -152,11 +150,11 @@ namespace SampleApp.Core.Modules.MyModules.Tests.Daos
             // Arrange
             var ignoreMissingOrNullFields = false;
             var srcEntities = _fixture.CreateMany<MyModuleEntity>(3).ToList();
-            srcEntities.ForEach(async (entity) => await _dao.Create(entity));
+            srcEntities.ForEach(async (entity) => await _repository.Create(entity));
             var updateDto = _fixture.Create<MyModuleUpdateDto>();
 
             // Act
-            var result = await _dao.Update(srcEntities[1].MyModuleId, updateDto, ignoreMissingOrNullFields);
+            var result = await _repository.Update<MyModuleUpdateDto, MyModuleEntity>(srcEntities[1].MyModuleId, updateDto, ignoreMissingOrNullFields);
 
             // Assert
             Assert.NotNull(result);
@@ -172,7 +170,7 @@ namespace SampleApp.Core.Modules.MyModules.Tests.Daos
             var updateDto = _fixture.Create<MyModuleUpdateDto>();
 
             // Act
-            var result = await _dao.Update(id, updateDto, ignoreMissingOrNullFields);
+            var result = await _repository.Update<MyModuleUpdateDto, MyModuleEntity>(id, updateDto, ignoreMissingOrNullFields);
 
             // Assert
             Assert.Null(result);
@@ -183,10 +181,10 @@ namespace SampleApp.Core.Modules.MyModules.Tests.Daos
         {
             // Arrange
             var srcEntities = _fixture.CreateMany<MyModuleEntity>(3).ToList();
-            srcEntities.ForEach(async (entity) => await _dao.Create(entity));
+            srcEntities.ForEach(async (entity) => await _repository.Create(entity));
 
             // Act
-            var found = await _dao.Delete(srcEntities[1].MyModuleId);
+            var found = await _repository.Delete<MyModuleEntity>(srcEntities[1].MyModuleId);
 
             // Assert
             Assert.True(found);
@@ -197,9 +195,9 @@ namespace SampleApp.Core.Modules.MyModules.Tests.Daos
         {
             // Arrange
             var id = _fixture.Create<long>();
-     
+
             // Act
-            var found = await _dao.Delete(id);
+            var found = await _repository.Delete<MyModuleEntity>(id);
 
             // Assert
             Assert.False(found);
@@ -210,16 +208,17 @@ namespace SampleApp.Core.Modules.MyModules.Tests.Daos
         {
             // Arrange
             var srcEntities = _fixture.CreateMany<MyModuleEntity>(3)
-               .Select((entity, index) => {
+               .Select((entity, index) =>
+               {
                    entity.MyModuleId = index + 1;
                    return entity;
                })
                .ToList();
-            srcEntities.ForEach(async (entity) => await _dao.Create(entity));
+            srcEntities.ForEach(async (entity) => await _repository.Create(entity));
             var value = srcEntities[1].MyModuleId;
             var propertyName = "MyModuleId";
             var resultItems = srcEntities
-                  .Where(e => (e.MyModuleId != value))
+                  .Where(e => e.MyModuleId != value)
                   .OrderByDescending(e => e.MyModuleId);
             var safeRequest = new SafePaginationRequest()
             {
@@ -249,7 +248,7 @@ namespace SampleApp.Core.Modules.MyModules.Tests.Daos
             };
 
             // Act
-            var result = await _dao.GetPaginated(safeRequest);
+            var result = await _repository.GetPaginated<MyModuleEntity>(safeRequest);
 
             // Assert
             Assert.NotNull(result);
@@ -264,7 +263,7 @@ namespace SampleApp.Core.Modules.MyModules.Tests.Daos
         {
             // Arrange
             var srcEntities = _fixture.CreateMany<MyModuleEntity>(3).ToList();
-            srcEntities.ForEach(async (entity) => await _dao.Create(entity));
+            srcEntities.ForEach(async (entity) => await _repository.Create(entity));
             var filter = new FindManyArgs<MyModuleEntity, MyModuleQueryDto>()
             {
                 Where = new MyModuleQueryDto
@@ -274,7 +273,7 @@ namespace SampleApp.Core.Modules.MyModules.Tests.Daos
             };
 
             // Act
-            var result = await _dao.GetMany(filter);
+            var result = await _repository.GetMany(filter);
 
             // Assert
             Assert.NotNull(result);
@@ -287,7 +286,7 @@ namespace SampleApp.Core.Modules.MyModules.Tests.Daos
         {
             // Arrange
             var srcEntities = _fixture.CreateMany<MyModuleEntity>(3).ToList();
-            srcEntities.ForEach(async (entity) => await _dao.Create(entity));
+            srcEntities.ForEach(async (entity) => await _repository.Create(entity));
             var filter = new FindManyArgs<MyModuleEntity, MyModuleQueryDto>()
             {
                 Where = new MyModuleQueryDto
@@ -297,7 +296,7 @@ namespace SampleApp.Core.Modules.MyModules.Tests.Daos
             };
 
             // Act
-            var result = await _dao.GetMany(filter);
+            var result = await _repository.GetMany(filter);
 
             // Assert
             Assert.NotNull(result);
@@ -309,7 +308,7 @@ namespace SampleApp.Core.Modules.MyModules.Tests.Daos
         {
             // Arrange
             var srcEntities = _fixture.CreateMany<MyModuleEntity>(3).ToList();
-            srcEntities.ForEach(async (entity) => await _dao.Create(entity));
+            srcEntities.ForEach(async (entity) => await _repository.Create(entity));
             var filter = new FindManyArgs<MyModuleEntity, MyModuleQueryDto>()
             {
                 Where = new MyModuleQueryDto
@@ -319,7 +318,7 @@ namespace SampleApp.Core.Modules.MyModules.Tests.Daos
             };
 
             // Act
-            var result = await _dao.GetMeta(filter);
+            var result = await _repository.GetMeta(filter);
 
             // Assert
             Assert.NotNull(result);
