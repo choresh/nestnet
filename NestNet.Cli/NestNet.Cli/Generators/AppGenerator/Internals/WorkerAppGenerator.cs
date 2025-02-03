@@ -13,11 +13,12 @@ namespace NestNet.Cli.Generators.AppGenerator
         {
             GenerateProjectFile(context);
             GenerateProgramFile(context);
+            GenerateWorkerService(context);
         }
 
         private static void GenerateProjectFile(AppGenerationContext context)
         {
-            var csprojContent = $@"<Project Sdk=""Microsoft.NET.Sdk.Web"">
+            var csprojContent = $@"<Project Sdk=""Microsoft.NET.Sdk.Worker"">
 
     <PropertyGroup>
         <TargetFramework>net8.0</TargetFramework>
@@ -34,7 +35,7 @@ namespace NestNet.Cli.Generators.AppGenerator
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include=""Swashbuckle.AspNetCore"" Version=""*"" />
+        <PackageReference Include=""Microsoft.Extensions.Hosting"" Version=""*"" />
     </ItemGroup>
 
     <ItemGroup>
@@ -51,76 +52,73 @@ namespace NestNet.Cli.Generators.AppGenerator
             var programContent = $@"using {context.BaseProjectName}.Core.Data;
 using Microsoft.EntityFrameworkCore;
 using NestNet.Infra.Helpers;
-using NestNet.Infra.Swagger;
 using System.Reflection;
 
-var builder = WebApplication.CreateBuilder(args);
+var builder = Host.CreateDefaultBuilder(args)
+    .ConfigureServices((hostContext, services) =>
+    {{
+        // Helper function to construct DB connection string from environment variables
+        {GetConnectionStringMethod(context.DbType)}
 
-// Add MVC controllers to the service container.
-builder.Services.AddControllers();
+        var connectionString = CreateConnectionString(args);
 
-// Add API explorer to enable API endpoint discovery and documentation
-// This is required for Swagger/OpenAPI to discover API endpoints
-builder.Services.AddEndpointsApiExplorer();
+        // Configure Entity Framework with database context
+        services.AddDbContext<AppDbContext>(options =>
+        {{
+            {GetDbContextOptionsCode(context.DbType, "connectionString")};
+        }});
 
-// Configure Swagger/OpenAPI documentation.
-builder.Services.AddSwaggerGen(c =>
-{{
-    // Enables Swagger annotations (SwaggerOperationAttribute, SwaggerParameterAttribute etc.).
-    c.EnableAnnotations();
+        // Configure dependency injection for classes with [Injectable] attribute
+        // This scans and register all injectable classes from both the Worker and Core assemblies
+        DependencyInjectionHelper.RegisterInjetables(services, [
+            Assembly.GetExecutingAssembly(),
+            Assembly.Load(""{context.BaseProjectName}.Core"")
+        ]);
 
-    // Add descriptions for enum values in Swagger documentation.
-    c.SchemaFilter<EnumSchemaFilter>();
-
-    // Add descriptions for query parameters from QueryDto classes.
-    c.SchemaFilter<QueryDtoSchemaFilter>();
-}});
-
-// Helper function to construct DB connection string from environment variables
-{GetConnectionStringMethod(context.DbType)}
-
-var connectionString = CreateConnectionString(args);
-
-// Configure Entity Framework with database context.
-builder.Services.AddDbContext<AppDbContext>(options =>
-{{
-    {GetDbContextOptionsCode(context.DbType, "connectionString")};
-}});
-
-// Configure dependency injection for classes with [Injectable] attribute.
-// This scans and register all injectable classes from both the API and Core assemblies.
-DependencyInjectionHelper.RegisterInjetables(builder.Services, [
-    Assembly.GetExecutingAssembly(),
-    Assembly.Load(""{context.BaseProjectName}.Core"")
-]);
+        // Add the worker service
+        services.AddHostedService<Worker>();
+    }});
 
 // Initialize the application
-var app = builder.Build();
+var host = builder.Build();
 
-// Enable Swagger UI only in development environment.
-if (app.Environment.IsDevelopment())
-{{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}}
-
-// Configure middleware pipeline
-app.UseHttpsRedirection();  // Redirect HTTP requests to HTTPS.
-app.UseAuthorization();     // Enable authorization.
-app.MapControllers();       // Register controller endpoints.
-
-// Initialize / update the DB (accurding code of our entities).
-using (var scope = app.Services.CreateScope())
+// Initialize / update the DB (according to code of our entities)
+using (var scope = host.Services.CreateScope())
 {{
     var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     // dbContext.Database.Migrate();  // This will create the database and apply migration
     dbContext.Database.EnsureCreated();  // Simpler, doesn't support migrations
 }}
 
-app.Run();";
+await host.RunAsync();";
 
             File.WriteAllText(Path.Combine(context.AppPath, "Program.cs"), programContent);
         }
 
+        private static void GenerateWorkerService(AppGenerationContext context)
+        {
+            var workerContent = $@"namespace {context.CurrProjectName};
+
+public class Worker : BackgroundService
+{{
+    private readonly ILogger<Worker> _logger;
+
+    public Worker(ILogger<Worker> logger)
+    {{
+        _logger = logger;
+    }}
+
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {{
+        while (!stoppingToken.IsCancellationRequested)
+        {{
+            _logger.LogInformation(""Worker running at: {{time}}"", DateTimeOffset.Now);
+            await Task.Delay(1000, stoppingToken);
+        }}
+    }}
+}}";
+
+            File.WriteAllText(Path.Combine(context.AppPath, "Worker.cs"), workerContent);
+        }
     }
 }
