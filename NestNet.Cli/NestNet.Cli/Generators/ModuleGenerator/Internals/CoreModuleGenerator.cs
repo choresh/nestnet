@@ -273,11 +273,11 @@ using NestNet.Infra.Paginatation;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using System.Text.Json;
-using {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModuleName}.Dtos;
+using Microsoft.EntityFrameworkCore;
 using {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModuleName}.Daos;
+using {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModuleName}.Dtos;
 using {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModuleName}.Entities;
 using {Context.ProjectContext!.ProjectName}.Data;
-using Microsoft.EntityFrameworkCore;
 
 namespace {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModuleName}.Tests.Daos
 {{
@@ -547,12 +547,7 @@ namespace {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModul
             // Assert
             Assert.NotNull(result);
             Assert.Single(result);
-            Assert.NotNull(result.FirstOrDefault());
-            Assert.Equal(
-                JsonSerializer.Serialize(expectedResult.FirstOrDefault()),
-                JsonSerializer.Serialize(result.FirstOrDefault()),
-                true
-            );
+            Assert.Equal(srcEntities[1], result.FirstOrDefault());
         }}
 
         [Fact]
@@ -607,14 +602,14 @@ namespace {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModul
                 return $@"using NSubstitute;
 using Xunit;
 using NestNet.Infra.Query;
-using NestNet.Infra.BaseClasses;
 using NestNet.Infra.Paginatation;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using System.Text.Json;
-using {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModuleName}.Services;
-using {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModuleName}.Dtos;
 using {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModuleName}.Daos;
+using {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModuleName}.Dtos;
+using {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModuleName}.Services;
+using {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModuleName}.Entities;
 
 namespace {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModuleName}.Tests.Services
 {{
@@ -641,7 +636,7 @@ namespace {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModul
 
             // Act
             var result = await _service.GetAll();
-  
+
             // Assert
             Assert.Equal(expectedResult.Count(), result.Count());
             Assert.Equal(
@@ -711,9 +706,9 @@ namespace {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModul
             var id = _fixture.Create<long>();
             var updateDto = _fixture.Create<{Context.UpdateDtoName}>();
             var updatedEntity = _service.ToEntity(updateDto);
-            var expectedResult = _service.ToResultDto(updatedEntity);           
+            var expectedResult = _service.ToResultDto(updatedEntity);
             _{Context.ParamName}Dao.Update(Arg.Any<long>(), Arg.Any<{Context.UpdateDtoName}>(), Arg.Any<bool>()).Returns(Task.FromResult<{Context.EntityName}?>(updatedEntity));
-            
+
             // Act
             var result = await _service.Update(id, updateDto, ignoreMissingOrNullFields);
 
@@ -746,16 +741,20 @@ namespace {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModul
         {{
             // Arrange
             var ignoreMissingOrNullFields = false;
-            var srcEntities = _fixture.CreateMany<{Context.EntityName}>(3).ToList();
-            srcEntities.ForEach(async (entity) => await _{Context.ParamName}Dao.Create(entity));
+            var id = _fixture.Create<long>();
             var updateDto = _fixture.Create<{Context.UpdateDtoName}>();
+            var updatedEntity = _service.ToEntity(updateDto);
+            var expectedResult = _service.ToResultDto(updatedEntity);
+            _{Context.ParamName}Dao.Update(Arg.Any<long>(), Arg.Any<{Context.UpdateDtoName}>(), Arg.Any<bool>()).Returns(Task.FromResult<{Context.EntityName}?>(updatedEntity));
 
             // Act
-            var result = await _service.Update(srcEntities[1].{Context.ArtifactName}Id, updateDto, ignoreMissingOrNullFields);
+            var result = await _service.Update(id, updateDto, ignoreMissingOrNullFields);
 
             // Assert
-            Assert.NotNull(result);
-            TestsHelper.IsValuesExists(updateDto, result, Assert.Equal);
+            Assert.Equal(
+                JsonSerializer.Serialize(expectedResult),
+                JsonSerializer.Serialize(result));
+            await _{Context.ParamName}Dao.Received(1).Update(id, updateDto, ignoreMissingOrNullFields);
         }}
 
         [Fact]
@@ -779,14 +778,16 @@ namespace {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModul
         public async Task Delete_ReturnsTrue_WhenExists()
         {{
             // Arrange
-            var srcEntities = _fixture.CreateMany<{Context.EntityName}>(3).ToList();
-            srcEntities.ForEach(async (entity) => await _{Context.ParamName}Dao.Create(entity));
+            var id = _fixture.Create<long>();
+            var entity = _fixture.Create<{Context.EntityName}>();
+            _{Context.ParamName}Dao.Delete(Arg.Any<long>()).Returns(Task.FromResult(true));
 
             // Act
-            var found = await _service.Delete(srcEntities[1].{Context.ArtifactName}Id);
+            var found = await _service.Delete(id);
 
             // Assert
             Assert.True(found);
+            await _{Context.ParamName}Dao.Received(1).Delete(id);
         }}
 
         [Fact]
@@ -794,39 +795,29 @@ namespace {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModul
         {{
             // Arrange
             var id = _fixture.Create<long>();
-     
+            _{Context.ParamName}Dao.Delete(Arg.Any<long>()).Returns(Task.FromResult(false));
+
             // Act
             var found = await _service.Delete(id);
 
             // Assert
             Assert.False(found);
+            await _{Context.ParamName}Dao.Received(1).Delete(id);
         }}
 
         [Fact]
         public async Task GetPaginated_ReturnsPaginatedItems()
         {{
             // Arrange
-            var srcEntities = _fixture.CreateMany<{Context.EntityName}>(3)
-               .Select((entity, index) => {{
-                   entity.{Context.ArtifactName}Id = index + 1;
-                   return entity;
-               }})
-               .ToList();
-            srcEntities.ForEach(async (entity) => await _{Context.ParamName}Dao.Create(entity));
-            var value = srcEntities[1].{Context.ArtifactName}Id;
-            var propertyName = ""{Context.ArtifactName}Id"";
-            var resultItems = srcEntities
-                  .Where(e => (e.{Context.ArtifactName}Id != value))
-                  .OrderByDescending(e => e.{Context.ArtifactName}Id);
+            var propertyName = ""{Context.ParamName}Id"";
             var safeRequest = new SafePaginationRequest()
             {{
-                IncludeTotalCount = true,
                 SortCriteria = new List<SortCriteria>()
                 {{
                     new SortCriteria()
                     {{
                         PropertyName = propertyName,
-                        SortDirection = SortDirection.Desc
+                        SortDirection = SortDirection.Asc
                     }}
                 }},
                 FilterCriteria = new List<FilterCriteria>()
@@ -834,26 +825,226 @@ namespace {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModul
                     new FilterCriteria()
                     {{
                         PropertyName = propertyName,
-                        Value = value.ToString(),
+                        Value = ""1"",
                         Operator = FilterOperator.NotEquals
                     }}
                 }}
             }};
-            var expectedResult = new PaginatedResult<{Context.EntityName}>
+
+            var srcEntities = _fixture.CreateMany<{Context.EntityName}>(3)
+              .Select((entity, index) => {{
+                  entity.{Context.ArtifactName}Id = index;
+                  return entity;
+              }})
+              .ToList();
+
+            var unsafeRequest = new UnsafePaginationRequest()
             {{
-                Items = resultItems,
-                TotalCount = resultItems.Count()
+                PageNumber = safeRequest.PageNumber,
+                PageSize = safeRequest.PageSize,
+                IncludeTotalCount = safeRequest.IncludeTotalCount,
+                SortBy = safeRequest.SortCriteria.Select(c => c.PropertyName).ToArray(),
+                SortDirection = safeRequest.SortCriteria.Select(c => c.SortDirection.ToString()).ToArray(),
+                FilterBy = safeRequest.FilterCriteria.Select(f => f.PropertyName).ToArray(),
+                FilterOperator = safeRequest.FilterCriteria.Select(f => f.Operator.ToString()).ToArray(),
+                FilterValue = safeRequest.FilterCriteria.Select(f => f.Value).ToArray()
             }};
 
+            var daoResult = new PaginatedResult<{Context.EntityName}>
+            {{
+                Items = srcEntities,
+                TotalCount = srcEntities.Count()
+            }};
+
+            var expectedResult = _service.ToPaginatedResultDtos(daoResult);
+            _{Context.ParamName}Dao.GetPaginated(Arg.Any<SafePaginationRequest>()).Returns(Task.FromResult(daoResult));
+
             // Act
-            var result = await _service.GetPaginated(safeRequest);
+            var result = await _service.GetPaginated(unsafeRequest);
 
             // Assert
-            Assert.NotNull(result);
-            Assert.Equal(expectedResult.TotalCount, result.TotalCount);
+            Assert.NotNull(result.Data);
+            Assert.Null(result.Error);
+            Assert.Equal(expectedResult.TotalCount, result.Data.TotalCount);
             Assert.Equal(
                 JsonSerializer.Serialize(expectedResult.Items),
-                JsonSerializer.Serialize(result.Items));
+                JsonSerializer.Serialize(result.Data.Items));
+            var receivedCalls = _{Context.ParamName}Dao.ReceivedCalls();
+            Assert.NotNull(receivedCalls);
+            Assert.Single(receivedCalls);
+            var receivedCall = receivedCalls.FirstOrDefault();
+            Assert.NotNull(receivedCall);
+            var receivedCallArguments = receivedCall.GetArguments();
+            Assert.Single(receivedCallArguments);
+            var receivedCallArgument = receivedCallArguments.FirstOrDefault();
+            Assert.NotNull(receivedCallArgument);
+            Assert.Equal(
+                JsonSerializer.Serialize(receivedCallArgument),
+                JsonSerializer.Serialize(safeRequest),
+                true
+            );
+        }}
+
+        [Fact]
+        public async Task GetPaginated_IncompleteCriteria_ReturnsParametersError()
+        {{
+            // Arrange
+            var propertyName = ""{Context.ArtifactName}Id"";
+            var safeRequest = new SafePaginationRequest()
+            {{
+                SortCriteria = new List<SortCriteria>()
+                {{
+                    new SortCriteria()
+                    {{
+                        PropertyName = propertyName,
+                        SortDirection = SortDirection.Asc
+                    }}
+                }},
+                FilterCriteria = new List<FilterCriteria>()
+                {{
+                    new FilterCriteria()
+                    {{
+                        PropertyName = propertyName,
+                        Value = ""1"",
+                        Operator = FilterOperator.NotEquals
+                    }}
+                }}
+            }};
+            var srcEntities = _fixture.CreateMany<{Context.EntityName}>(3).ToList();
+            var unsafeRequest = new UnsafePaginationRequest()
+            {{
+                PageNumber = safeRequest.PageNumber,
+                PageSize = safeRequest.PageSize,
+                IncludeTotalCount = safeRequest.IncludeTotalCount,
+                // SortBy = safeRequest.SortCriteria.Select(c => c.PropertyName).ToArray(),
+                SortDirection = safeRequest.SortCriteria.Select(c => c.SortDirection.ToString()).ToArray(),
+                // FilterBy = safeRequest.FilterCriteria.Select(f => f.PropertyName).ToArray(),
+                FilterOperator = safeRequest.FilterCriteria.Select(f => f.Operator.ToString()).ToArray(),
+                FilterValue = safeRequest.FilterCriteria.Select(f => f.Value).ToArray()
+            }};
+            var daoResult = new PaginatedResult<{Context.EntityName}>
+            {{
+                Items = srcEntities,
+                TotalCount = srcEntities.Count()
+            }};
+            _{Context.ParamName}Dao.GetPaginated(Arg.Any<SafePaginationRequest>()).Returns(Task.FromResult(daoResult));
+
+            // Act
+            var result = await _service.GetPaginated(unsafeRequest);
+
+            // Assert
+            Assert.Null(result.Data);
+            Assert.NotNull(result.Error);
+            Assert.Contains(""Sort criteria is incomplete"", result.Error);
+            Assert.Contains(""Filter criteria is incomplete"", result.Error);
+        }}
+
+        [Fact]
+        public async Task GetPaginated_InvalidEnumValue_ReturnsParametersError()
+        {{
+            // Arrange
+            var propertyName = ""{Context.ArtifactName}Id"";
+            var safeRequest = new SafePaginationRequest()
+            {{
+                SortCriteria = new List<SortCriteria>()
+                {{
+                    new SortCriteria()
+                    {{
+                        PropertyName = propertyName,
+                        SortDirection = SortDirection.Asc
+                    }}
+                }},
+                FilterCriteria = new List<FilterCriteria>()
+                {{
+                    new FilterCriteria()
+                    {{
+                        PropertyName = propertyName,
+                        Value = ""1"",
+                        Operator = FilterOperator.NotEquals
+                    }}
+                }}
+            }};
+            var srcEntities = _fixture.CreateMany<{Context.EntityName}>(3).ToList();
+            var unsafeRequest = new UnsafePaginationRequest()
+            {{
+                PageNumber = safeRequest.PageNumber,
+                PageSize = safeRequest.PageSize,
+                IncludeTotalCount = safeRequest.IncludeTotalCount,
+                SortBy = safeRequest.SortCriteria.Select(c => c.PropertyName).ToArray(),
+                SortDirection = safeRequest.SortCriteria.Select(c => c.SortDirection.ToString() + ""Blabla"").ToArray(),
+                FilterBy = safeRequest.FilterCriteria.Select(f => f.PropertyName).ToArray(),
+                FilterOperator = safeRequest.FilterCriteria.Select(f => f.Operator.ToString() + ""Blabla"").ToArray(),
+                FilterValue = safeRequest.FilterCriteria.Select(f => f.Value).ToArray()
+            }};
+            var daoResult = new PaginatedResult<{Context.EntityName}>
+            {{
+                Items = srcEntities,
+                TotalCount = srcEntities.Count()
+            }};
+            _{Context.ParamName}Dao.GetPaginated(Arg.Any<SafePaginationRequest>()).Returns(Task.FromResult(daoResult));
+
+            // Act
+            var result = await _service.GetPaginated(unsafeRequest);
+
+            // Assert
+            Assert.Null(result.Data);
+            Assert.NotNull(result.Error);
+            Assert.Contains(""Invalid sort direction"", result.Error);
+            Assert.Contains(""Invalid filter operator"", result.Error);
+        }}
+
+        [Fact]
+        public async Task GetPaginated_InvalidPropertyName_ReturnsParametersError()
+        {{
+            // Arrange
+            var propertyName = ""{Context.ArtifactName}Id"";
+            var safeRequest = new SafePaginationRequest()
+            {{
+                SortCriteria = new List<SortCriteria>()
+                {{
+                    new SortCriteria()
+                    {{
+                        PropertyName = propertyName,
+                        SortDirection = SortDirection.Asc
+                    }}
+                }},
+                FilterCriteria = new List<FilterCriteria>()
+                {{
+                    new FilterCriteria()
+                    {{
+                        PropertyName = propertyName,
+                        Value = ""1"",
+                        Operator = FilterOperator.NotEquals
+                    }}
+                }}
+            }};
+            var unsafeRequest = new UnsafePaginationRequest()
+            {{
+                PageNumber = safeRequest.PageNumber,
+                PageSize = safeRequest.PageSize,
+                IncludeTotalCount = safeRequest.IncludeTotalCount,
+                SortBy = safeRequest.SortCriteria.Select(c => c.PropertyName + ""Blabla"").ToArray(),
+                SortDirection = safeRequest.SortCriteria.Select(c => c.SortDirection.ToString()).ToArray(),
+                FilterBy = safeRequest.FilterCriteria.Select(f => f.PropertyName + ""Blabla"").ToArray(),
+                FilterOperator = safeRequest.FilterCriteria.Select(f => f.Operator.ToString()).ToArray(),
+                FilterValue = safeRequest.FilterCriteria.Select(f => f.Value).ToArray()
+            }};
+            var srcEntities = _fixture.CreateMany<{Context.EntityName}>(3).ToList();
+            var daoResult = new PaginatedResult<{Context.EntityName}>
+            {{
+                Items = srcEntities,
+                TotalCount = srcEntities.Count()
+            }};
+            _{Context.ParamName}Dao.GetPaginated(Arg.Any<SafePaginationRequest>()).Returns(Task.FromResult(daoResult));
+
+            // Act
+            var result = await _service.GetPaginated(unsafeRequest);
+
+            // Assert
+            Assert.Null(result.Data);
+            Assert.NotNull(result.Error);
+            Assert.Contains(""Invalid sort properties"", result.Error);
+            Assert.Contains(""Invalid filter properties"", result.Error);
         }}
 
         [Fact]
@@ -861,7 +1052,8 @@ namespace {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModul
         {{
             // Arrange
             var srcEntities = _fixture.CreateMany<{Context.EntityName}>(3).ToList();
-            srcEntities.ForEach(async (entity) => await _{Context.ParamName}Dao.Create(entity));
+            var expectedResult = _service.ToResultDtos([srcEntities.ToArray()[1]]);
+            _{Context.ParamName}Dao.GetMany(Arg.Any<FindManyArgs<{Context.EntityName}, {Context.QueryDtoName}>>()).Returns(Task.FromResult<IEnumerable<{Context.EntityName}>>([srcEntities.ToArray()[1]]));
             var filter = new FindManyArgs<{Context.EntityName}, {Context.QueryDtoName}>()
             {{
                 Where = new {Context.QueryDtoName}
@@ -889,8 +1081,7 @@ namespace {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModul
         public async Task GetMany_ReturnsEmptyList_WhenNoIdsMatch()
         {{
             // Arrange
-            var srcEntities = _fixture.CreateMany<{Context.EntityName}>(3).ToList();
-            srcEntities.ForEach(async (entity) => await _{Context.ParamName}Dao.Create(entity));
+            _{Context.ParamName}Dao.GetMany(Arg.Any<FindManyArgs<{Context.EntityName}, {Context.QueryDtoName}>>()).Returns(Task.FromResult<IEnumerable<{Context.EntityName}>>([]));
             var filter = new FindManyArgs<{Context.EntityName}, {Context.QueryDtoName}>()
             {{
                 Where = new {Context.QueryDtoName}
@@ -912,13 +1103,13 @@ namespace {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModul
         public async Task GetMeta_ReturnsCorrectMetadata()
         {{
             // Arrange
-            var srcEntities = _fixture.CreateMany<{Context.EntityName}>(3).ToList();
-            srcEntities.ForEach(async (entity) => await _{Context.ParamName}Dao.Create(entity));
+            var count = _fixture.Create<long>();
+            _{Context.ParamName}Dao.GetMeta(Arg.Any<FindManyArgs<{Context.EntityName}, {Context.QueryDtoName}>>()).Returns(Task.FromResult(new MetadataDto() {{ Count = count }}));
             var filter = new FindManyArgs<{Context.EntityName}, {Context.QueryDtoName}>()
             {{
                 Where = new {Context.QueryDtoName}
                 {{
-                    {Context.ArtifactName}Id = srcEntities[1].{Context.ArtifactName}Id
+                    {Context.ArtifactName}Id = -1
                 }}
             }};
 
@@ -927,350 +1118,12 @@ namespace {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModul
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal(1, result.Count);
+            Assert.Equal(count, result.Count);
+            await _{Context.ParamName}Dao.Received(1).GetMeta(filter);
         }}
     }}
 }}";
             }
-/* ZZZ
-            private static string GetDaoTestContent(ModuleGenerationContext context)
-            {
-                return $@"using Xunit;
-using NestNet.Infra.Query;
-using NestNet.Infra.Helpers;
-using NestNet.Infra.Paginatation;
-using AutoFixture;
-using AutoFixture.AutoNSubstitute;
-using System.Text.Json;
-using {Context.ProjectContext!.ProjectName}.Modules.{context.PluralizedModuleName}.Dtos;
-using {Context.ProjectContext!.ProjectName}.Modules.{context.PluralizedModuleName}.Daos;
-using {Context.ProjectContext!.ProjectName}.Modules.{context.PluralizedModuleName}.Entities;
-using {context.ProjectContext!.ProjectName}.Data;
-using Microsoft.EntityFrameworkCore;
-
-namespace {Context.ProjectContext!.ProjectName}.Modules.{context.PluralizedModuleName}.Tests.Daos
-{{
-    public class {context.PluralizedModuleName}DaoTests : IDisposable, IAsyncLifetime
-    {{
-        private readonly IFixture _fixture;
-        private readonly AppDbContext _context;
-        private readonly {context.ArtifactName}Dao _dao;
-
-        public {context.PluralizedModuleName}DaoTests()
-        {{
-            _fixture = new Fixture().Customize(new AutoNSubstituteCustomization());
-
-            // Create options for in-memory database
-            var options = new DbContextOptionsBuilder<AppDbContext>()
-                .UseInMemoryDatabase(databaseName: $""TestDb_{{Guid.NewGuid()}}"")  // Unique name per test
-                .Options;
-
-            // Create real context with in-memory database
-            _context = new AppDbContext(options);
-
-            _dao = new {context.ArtifactName}Dao(_context);
-        }}
-
-        public async Task InitializeAsync()
-        {{
-            // Clean database before each test
-            await _context.Database.EnsureDeletedAsync();
-            await _context.Database.EnsureCreatedAsync();
-        }}
-
-        public Task DisposeAsync()
-        {{
-            return Task.CompletedTask;
-        }}
-    
-        public void Dispose()
-        {{
-            _context.Database.EnsureDeleted();
-            _context.Dispose();
-        }}
-
-        [Fact]
-        public async Task GetAll_ReturnsAllItems()
-        {{
-            // Arrange
-            var srcEntities = _fixture.CreateMany<{context.EntityName}>(3).ToList();
-            srcEntities.ForEach(async (entity) => await _dao.Create(entity));
-
-            // Act
-            var result = await _dao.GetAll();
-
-            // Assert
-            Assert.Equal(srcEntities.Count(), result.Count());
-            Assert.Equal(
-                JsonSerializer.Serialize(srcEntities),
-                JsonSerializer.Serialize(result));
-        }}
-
-        [Fact]
-        public async Task GetById_ReturnsItem_WhenExists()
-        {{
-            // Arrange
-            var srcEntities = _fixture.CreateMany<{context.EntityName}>(3).ToList();
-            srcEntities.ForEach(async (entity) => await _dao.Create(entity));
-
-            // Act
-            var result = await _dao.GetById(srcEntities[1].{context.ArtifactName}Id);
-
-            // Assert
-            Assert.Equal(
-                JsonSerializer.Serialize(srcEntities[1]),
-                JsonSerializer.Serialize(result));
-        }}
-
-        [Fact]
-        public async Task GetById_ReturnsNull_WhenNotExists()
-        {{
-            // Arrange
-            var id = _fixture.Create<long>();
-          
-            // Act
-            var result = await _dao.GetById(id);
-
-            // Assert
-            Assert.Null(result);
-        }}
-
-        [Fact]
-        public async Task Create_ReturnsCreatedItem()
-        {{
-            // Arrange
-            var srcEntity = _fixture.Create<{context.EntityName}>();
-
-            // Act
-            await _dao.Create(srcEntity);
-
-            // Assert
-            var result = await _dao.GetById(srcEntity.{context.ArtifactName}Id);
-            Assert.Equal(
-              JsonSerializer.Serialize(srcEntity),
-              JsonSerializer.Serialize(result));
-        }}
-
-        [Fact]
-        public async Task Update_WithIgnoreMissingOrNullFields_True_ReturnsUpdatedItem_WhenExists()
-        {{
-            // Arrange
-            var ignoreMissingOrNullFields = true;
-            var srcEntities = _fixture.CreateMany<{context.EntityName}>(3).ToList();
-            srcEntities.ForEach(async (entity) => await _dao.Create(entity));
-            var updateDto = _fixture.Create<{context.UpdateDtoName}>();
-
-            // Act
-            var result = await _dao.Update(srcEntities[1].{context.ArtifactName}Id, updateDto, ignoreMissingOrNullFields);
-
-            // Assert
-            Assert.NotNull(result);
-            TestsHelper.IsValuesExists(updateDto, result, Assert.Equal);
-        }}
-
-        [Fact]
-        public async Task Update_WithIgnoreMissingOrNullFields_True_ReturnsNull_WhenNotExists()
-        {{
-            // Arrange
-            var ignoreMissingOrNullFields = true;
-            var id = _fixture.Create<long>();
-            var updateDto = _fixture.Create<{context.UpdateDtoName}>();
-
-            // Act
-            var result = await _dao.Update(id, updateDto, ignoreMissingOrNullFields);
-
-            // Assert
-            Assert.Null(result);
-        }}
-
-        [Fact]
-        public async Task Update_WithIgnoreMissingOrNullFields_False_ReturnsUpdatedItem_WhenExists()
-        {{
-            // Arrange
-            var ignoreMissingOrNullFields = false;
-            var srcEntities = _fixture.CreateMany<{context.EntityName}>(3).ToList();
-            srcEntities.ForEach(async (entity) => await _dao.Create(entity));
-            var updateDto = _fixture.Create<{context.UpdateDtoName}>();
-
-            // Act
-            var result = await _dao.Update(srcEntities[1].{context.ArtifactName}Id, updateDto, ignoreMissingOrNullFields);
-
-            // Assert
-            Assert.NotNull(result);
-            TestsHelper.IsValuesExists(updateDto, result, Assert.Equal);
-        }}
-
-        [Fact]
-        public async Task Update_WithIgnoreMissingOrNullFields_False_ReturnsNull_WhenNotExists()
-        {{
-            // Arrange
-            var ignoreMissingOrNullFields = false;
-            var id = _fixture.Create<long>();
-            var updateDto = _fixture.Create<{context.UpdateDtoName}>();
-
-            // Act
-            var result = await _dao.Update(id, updateDto, ignoreMissingOrNullFields);
-
-            // Assert
-            Assert.Null(result);
-        }}
-
-        [Fact]
-        public async Task Delete_ReturnsTrue_WhenExists()
-        {{
-            // Arrange
-            var srcEntities = _fixture.CreateMany<{context.EntityName}>(3).ToList();
-            srcEntities.ForEach(async (entity) => await _dao.Create(entity));
-
-            // Act
-            var found = await _dao.Delete(srcEntities[1].{context.ArtifactName}Id);
-
-            // Assert
-            Assert.True(found);
-        }}
-
-        [Fact]
-        public async Task Delete_ReturnsFalse_WhenNotExists()
-        {{
-            // Arrange
-            var id = _fixture.Create<long>();
-     
-            // Act
-            var found = await _dao.Delete(id);
-
-            // Assert
-            Assert.False(found);
-        }}
-
-        [Fact]
-        public async Task GetPaginated_ReturnsPaginatedItems()
-        {{
-            // Arrange
-            var srcEntities = _fixture.CreateMany<{context.EntityName}>(3)
-               .Select((entity, index) => {{
-                   entity.{context.ArtifactName}Id = index + 1;
-                   return entity;
-               }})
-               .ToList();
-            srcEntities.ForEach(async (entity) => await _dao.Create(entity));
-            var value = srcEntities[1].{context.ArtifactName}Id;
-            var propertyName = ""{context.ArtifactName}Id"";
-            var resultItems = srcEntities
-                  .Where(e => (e.{context.ArtifactName}Id != value))
-                  .OrderByDescending(e => e.{context.ArtifactName}Id);
-            var safeRequest = new SafePaginationRequest()
-            {{
-                IncludeTotalCount = true,
-                SortCriteria = new List<SortCriteria>()
-                {{
-                    new SortCriteria()
-                    {{
-                        PropertyName = propertyName,
-                        SortDirection = SortDirection.Desc
-                    }}
-                }},
-                FilterCriteria = new List<FilterCriteria>()
-                {{
-                    new FilterCriteria()
-                    {{
-                        PropertyName = propertyName,
-                        Value = value.ToString(),
-                        Operator = FilterOperator.NotEquals
-                    }}
-                }}
-            }};
-            var expectedResult = new PaginatedResult<{context.EntityName}>
-            {{
-                Items = resultItems,
-                TotalCount = resultItems.Count()
-            }};
-
-            // Act
-            var result = await _dao.GetPaginated(safeRequest);
-
-            // Assert
-            Assert.NotNull(result);
-            Assert.Equal(expectedResult.TotalCount, result.TotalCount);
-            Assert.Equal(
-                JsonSerializer.Serialize(expectedResult.Items),
-                JsonSerializer.Serialize(result.Items));
-        }}
-
-        [Fact]
-        public async Task GetMany_ReturnsMatchingItems()
-        {{
-            // Arrange
-            var srcEntities = _fixture.CreateMany<{context.EntityName}>(3).ToList();
-            srcEntities.ForEach(async (entity) => await _dao.Create(entity));
-            var filter = new FindManyArgs<{context.EntityName}, {context.QueryDtoName}>()
-            {{
-                Where = new {context.QueryDtoName}
-                {{
-                    {context.ArtifactName}Id = srcEntities[1].{context.ArtifactName}Id
-                }}
-            }};
-
-            // Act
-            var result = await _dao.GetMany(filter);
-
-            // Assert
-            Assert.NotNull(result);
-            Assert.Single(result);
-            Assert.NotNull(result.FirstOrDefault());
-            Assert.Equal(
-                JsonSerializer.Serialize(expectedResult.FirstOrDefault()),
-                JsonSerializer.Serialize(result.FirstOrDefault()),
-                true
-            );
-        }}
-
-        [Fact]
-        public async Task GetMany_ReturnsEmptyList_WhenNoIdsMatch()
-        {{
-            // Arrange
-            var srcEntities = _fixture.CreateMany<{context.EntityName}>(3).ToList();
-            srcEntities.ForEach(async (entity) => await _dao.Create(entity));
-            var filter = new FindManyArgs<{context.EntityName}, {context.QueryDtoName}>()
-            {{
-                Where = new {context.QueryDtoName}
-                {{
-                    {context.ArtifactName}Id = -1
-                }}
-            }};
-
-            // Act
-            var result = await _dao.GetMany(filter);
-
-            // Assert
-            Assert.NotNull(result);
-            Assert.Empty(result);
-        }}
-
-        [Fact]
-        public async Task GetMeta_ReturnsCorrectMetadata()
-        {{
-            // Arrange
-            var srcEntities = _fixture.CreateMany<{context.EntityName}>(3).ToList();
-            srcEntities.ForEach(async (entity) => await _dao.Create(entity));
-            var filter = new FindManyArgs<{context.EntityName}, {context.QueryDtoName}>()
-            {{
-                Where = new {context.QueryDtoName}
-                {{
-                    {context.ArtifactName}Id = srcEntities[1].{context.ArtifactName}Id
-                }}
-            }};
-
-            // Act
-            var result = await _dao.GetMeta(filter);
-
-            // Assert
-            Assert.NotNull(result);
-            Assert.Equal(1, result.Count);
-        }}
-    }}
-}}";
-            }
-*/
         }
     }
 }

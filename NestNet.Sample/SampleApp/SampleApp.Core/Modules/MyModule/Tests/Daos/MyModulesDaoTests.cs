@@ -11,7 +11,7 @@ using SampleApp.Core.Modules.MyModules.Dtos;
 using SampleApp.Core.Modules.MyModules.Entities;
 using SampleApp.Core.Data;
 
-namespace SampleApp.Modules.MyModules.Tests.Daos
+namespace SampleApp.Core.Modules.MyModules.Tests.Daos
 {
     public class MyModulesDaoTests : IDisposable, IAsyncLifetime
     {
@@ -45,7 +45,7 @@ namespace SampleApp.Modules.MyModules.Tests.Daos
         {
             return Task.CompletedTask;
         }
-
+    
         public void Dispose()
         {
             _context.Database.EnsureDeleted();
@@ -90,7 +90,7 @@ namespace SampleApp.Modules.MyModules.Tests.Daos
         {
             // Arrange
             var id = _fixture.Create<long>();
-
+          
             // Act
             var result = await _dao.GetById(id);
 
@@ -197,7 +197,7 @@ namespace SampleApp.Modules.MyModules.Tests.Daos
         {
             // Arrange
             var id = _fixture.Create<long>();
-
+     
             // Act
             var found = await _dao.Delete(id);
 
