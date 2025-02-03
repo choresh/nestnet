@@ -29,6 +29,7 @@ namespace NestNet.Cli.Generators.ResourceGenerator
             public required string SampleInputDtoName { get; set; }
             public required string SampleOutputDtoName { get; set; }
             public bool GenerateController { get; set; }
+            public bool GenerateConsumer { get; set; }
         }
 
         public static void Run(InputParams? inputParams = null)
@@ -89,6 +90,7 @@ namespace NestNet.Cli.Generators.ResourceGenerator
             return new ResourceGenerationContext
             {
                 GenerateController = true, // ZZZ
+                GenerateConsumer = true, // ZZZ
                 ArtifactName = inputParams.ResourceName,
                 ParamName = paramName,
                 KebabCaseResourceName = kebabCaseResourceName,
@@ -106,6 +108,7 @@ namespace NestNet.Cli.Generators.ResourceGenerator
             return new ResourceGenerationContext
             {
                 GenerateController = true, // ZZZ
+                GenerateConsumer = true, // ZZZ
                 ArtifactName = resourceName,
                 ParamName = paramName,
                 KebabCaseResourceName = kebabCaseResourceName,

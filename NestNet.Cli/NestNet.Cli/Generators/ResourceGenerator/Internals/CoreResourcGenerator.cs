@@ -64,7 +64,7 @@ namespace NestNet.Cli.Generators.ResourceGenerator
                 File.WriteAllText(servicePath, serviceContent);
                 AnsiConsole.MarkupLine(Helpers.FormatMessage($"Created: {servicePath}", "grey"));
             }
-           
+
 
             private void CreateServiceTestFile()
             {

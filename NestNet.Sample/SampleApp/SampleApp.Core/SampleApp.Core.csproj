@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFramework>net8.0</TargetFramework>
@@ -7,17 +7,20 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Compile Remove="Modules\MyModule\Tests\**" />
-      <Compile Remove="Resources\MyResource\Tests\**" />
-      <EmbeddedResource Remove="Modules\MyModule\Tests\**" />
-      <EmbeddedResource Remove="Resources\MyResource\Tests\**" />
-      <None Remove="Modules\MyModule\Tests\**" />
-      <None Remove="Resources\MyResource\Tests\**" />
-    </ItemGroup>
-
-    <ItemGroup>
         <PackageReference Include="Microsoft.EntityFrameworkCore" Version="*" />
         <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="*" />
+
+        <PackageReference Include="Xunit" Version="*" />
+        <PackageReference Include="Microsoft.TestPlatform.TestHost" Version="*" />
+        <PackageReference Include="AutoFixture" Version="*" />
+        <PackageReference Include="AutoFixture.AutoNSubstitute" Version="*" />
+        <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="*" />
+        <PackageReference Include="NSubstitute" Version="*" />
+        <PackageReference Include="xunit.runner.visualstudio" Version="*">
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+        <PackageReference Include="Microsoft.NET.Test.Sdk" Version="*" />
     </ItemGroup>
 
     <ItemGroup>

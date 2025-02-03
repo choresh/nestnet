@@ -38,6 +38,12 @@ namespace NestNet.Cli.Infra
             var baseProjectName = Path.GetFileName(currentDir);
             var projectName = $"{baseProjectName}.{projectType}";
             var projectDir = Path.Join(currentDir, projectName);
+            if (!Directory.Exists(projectDir))
+            {
+                AnsiConsole.MarkupLine(Helpers.FormatMessage($"Warnning: No correspond directory found for '{projectType}' project.", "yellow"));
+                return (null, null);
+
+            }
             var csprojFile = Directory.GetFiles(projectDir, "*.csproj").FirstOrDefault();
             if (csprojFile == null)
             {

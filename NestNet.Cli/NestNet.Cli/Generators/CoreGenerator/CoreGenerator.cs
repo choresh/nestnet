@@ -59,6 +59,49 @@ lib
             File.WriteAllText(Path.Combine(context.CurrentDir, ".gitignore"), gitignoreContent);
         }
 
+        /*
+        // ZZZ
+        private static void CopyDocumentation(string projectRoot)
+        {
+            AnsiConsole.MarkupLine(Helpers.FormatMessage("\nCopy documentation started...", "green"));
+
+            // Create Doc directory
+            string docDir = Path.Combine(projectRoot, "Doc");
+            Directory.CreateDirectory(docDir);
+
+            // Copy documentation files
+            CopyEmbeddedResource("README.md", Path.Combine(docDir, "README.md"));
+
+            AnsiConsole.MarkupLine(Helpers.FormatMessage("Copy documentation ended", "green"));
+        }
+
+        private static void CopyEmbeddedResource(string resourceName, string targetPath)
+        {
+            var assembly = Assembly.GetExecutingAssembly();
+            var resourcePath = $"NestNet.Cli.Data.Templates.Doc.{resourceName}";
+            try
+            {
+                using (var stream = assembly.GetManifestResourceStream(resourcePath))
+                {
+                    if (stream == null)
+                    {
+                        throw new InvalidOperationException($"Could not find embedded resource: {resourcePath}");
+                    }
+                    using (var reader = new StreamReader(stream))
+                    {
+                        string content = reader.ReadToEnd();
+                        File.WriteAllText(targetPath, content);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"Failed to copy resource {resourceName} to {targetPath}", ex);
+            }
+        }
+        */
+
+
         private static void GenerateProjectFile(CoreGenerationContext context)
         {
             string dbPackage;
@@ -85,6 +128,18 @@ lib
     <ItemGroup>
         <PackageReference Include=""Microsoft.EntityFrameworkCore"" Version=""*"" />
         <PackageReference Include=""{dbPackage}"" Version=""*"" />
+
+        <PackageReference Include=""Xunit"" Version=""*"" />
+        <PackageReference Include=""Microsoft.TestPlatform.TestHost"" Version=""*"" />
+        <PackageReference Include=""AutoFixture"" Version=""*"" />
+        <PackageReference Include=""AutoFixture.AutoNSubstitute"" Version=""*"" />
+        <PackageReference Include=""Microsoft.EntityFrameworkCore.InMemory"" Version=""*"" />
+        <PackageReference Include=""NSubstitute"" Version=""*"" />
+        <PackageReference Include=""xunit.runner.visualstudio"" Version=""*"">
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+        <PackageReference Include=""Microsoft.NET.Test.Sdk"" Version=""*"" />
     </ItemGroup>
 
 </Project>";

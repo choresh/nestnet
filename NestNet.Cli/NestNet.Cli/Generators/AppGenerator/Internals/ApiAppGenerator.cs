@@ -35,6 +35,18 @@ namespace NestNet.Cli.Generators.AppGenerator
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
         <PackageReference Include=""Swashbuckle.AspNetCore"" Version=""*"" />
+
+        <PackageReference Include=""Xunit"" Version=""*"" />
+        <PackageReference Include=""Microsoft.TestPlatform.TestHost"" Version=""*"" />
+        <PackageReference Include=""AutoFixture"" Version=""*"" />
+        <PackageReference Include=""AutoFixture.AutoNSubstitute"" Version=""*"" />
+        <PackageReference Include=""Microsoft.EntityFrameworkCore.InMemory"" Version=""*"" />
+        <PackageReference Include=""NSubstitute"" Version=""*"" />
+        <PackageReference Include=""xunit.runner.visualstudio"" Version=""*"">
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+            <PrivateAssets>all</PrivateAssets>
+        </PackageReference>
+        <PackageReference Include=""Microsoft.NET.Test.Sdk"" Version=""*"" />
     </ItemGroup>
 
     <ItemGroup>
