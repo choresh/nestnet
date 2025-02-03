@@ -1,7 +1,6 @@
 #pragma warning disable IDE0290 // Use primary constructor
 using NestNet.Infra.BaseClasses;
 using NestNet.Infra.Attributes;
-using Microsoft.EntityFrameworkCore;
 
 namespace SampleApp.Core.Data
 {
@@ -13,8 +12,8 @@ namespace SampleApp.Core.Data
     [Injectable(LifetimeType.Scoped)]
     public class AppRepository : AppRepositoryBase
     {
-        public AppRepository(DbContext context)
-            : base (context)
+        public AppRepository(AppDbContext context)
+            : base(context)
         {
         }
 

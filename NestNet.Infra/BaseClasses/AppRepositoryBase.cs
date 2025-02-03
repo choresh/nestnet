@@ -202,40 +202,51 @@ namespace NestNet.Infra.BaseClasses
         }
 
         /// <summary>
+        /// * Get Entity by condition (protected - to be used only by derived class - e.g. 'AppRepository').
+        /// * Importent note: if your code use this method - ensure that spicfied field(s) are indexed (in top of the relevant entity class)!!! 
+        /// </summary>
+        /// 
+        /// <example>
         /// Usage example:
+        /// <code>
         /// // Find by string field
         /// var entity = await repository.GetEntityByCondition<YourEntity>(e => e.Name == "searchName");
+        /// </code>
         /// 
+        /// <code>
         /// // Find by numeric field
         /// var entity = await repository.GetEntityByCondition<YourEntity>(e => e.Amount == 100);
-        /// 
+        /// </code>
+        ///
+        /// <code>
         /// // Complex conditions
         /// var entity = await repository.GetEntityByCondition<YourEntity>(
         ///     e => e.Status == "Active" && e.CreatedDate > DateTime.UtcNow.AddDays(-7)
         /// );
-        /// </summary>
-        public async Task<TEntity?> GetEntityByCondition<TEntity>(Expression<Func<TEntity, bool>> predicate) where TEntity : class, IEntity
+        /// </code>
+        /// </example>
+        protected async Task<TEntity?> GetEntityByCondition<TEntity>(Expression<Func<TEntity, bool>> predicate) where TEntity : class, IEntity
         {
             return await _context.Set<TEntity>().FirstOrDefaultAsync(predicate);
         }
 
         /// <summary>
-        /// Executes a custom query on entities using LINQ expressions.
+        /// Executes a custom query on entities using LINQ expressions (protected - to be used only by derived class - e.g. 'AppRepository').
         /// </summary>
         /// <typeparam name="T">The entity type to query</typeparam>
         /// <param name="query">A function that takes an IQueryable and returns the query result</param>
         /// <returns>The query results as an IEnumerable</returns>
         /// <example>
-        /// Simple query:
         /// <code>
+        /// // Simple query:
         /// var activeUsers = await repository.GetEntities(query =>
         ///     query.Where(u => u.IsActive)
         ///          .OrderBy(u => u.LastName)
         ///          .ToListAsync());
         /// </code>
         /// 
-        /// Join example:
         /// <code>
+        /// // Join example:
         /// var orderDetails = await repository.GetEntities(query =>
         ///     query.Join(
         ///         context.Set&lt;Customer&gt;(),
@@ -246,8 +257,8 @@ namespace NestNet.Infra.BaseClasses
         ///     .ToListAsync());
         /// </code>
         /// 
-        /// Complex query with multiple joins:
         /// <code>
+        /// // Complex query with multiple joins:
         /// var result = await repository.GetEntities(query =>
         ///     query.Include(o => o.OrderItems)
         ///          .Join(
@@ -267,7 +278,7 @@ namespace NestNet.Infra.BaseClasses
         ///          .ToListAsync());
         /// </code>
         /// </example>
-        public async Task<IEnumerable<TEntity>> GetEntities<TEntity>(Func<IQueryable<TEntity>, Task<List<TEntity>>> query) where TEntity : class, IEntity
+        protected async Task<IEnumerable<TEntity>> GetEntities<TEntity>(Func<IQueryable<TEntity>, Task<List<TEntity>>> query) where TEntity : class, IEntity
         {
             return await query(_context.Set<TEntity>());
         }
