@@ -87,14 +87,15 @@ namespace {Context.ProjectContext!.ProjectName}.Resources.{Context.ArtifactName}
 
             private string GetControllerTestContent()
             {
+                var srcProjectName = Context.ProjectContext!.ProjectName.Replace(".Api", ".Core");
                 return $@"using Microsoft.AspNetCore.Mvc;
 using NSubstitute;
 using Xunit;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using {Context.ProjectContext!.ProjectName}.Resources.{Context.ArtifactName}.Controllers;
-using {Context.ProjectContext!.ProjectName}.Resources.{Context.ArtifactName}.Dtos;
-using {Context.ProjectContext!.ProjectName}.Resources.{Context.ArtifactName}.Services;
+using {srcProjectName}.Resources.{Context.ArtifactName}.Dtos;
+using {srcProjectName}.Resources.{Context.ArtifactName}.Services;
 
 namespace {Context.ProjectContext!.ProjectName}.Resources.{Context.ArtifactName}.Tests.Controllers
 {{

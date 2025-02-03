@@ -7,7 +7,7 @@ using SampleApp.Api.Resources.MyResource.Controllers;
 using SampleApp.Core.Resources.MyResource.Dtos;
 using SampleApp.Core.Resources.MyResource.Services;
 
-namespace SampleApp.Resources.MyResource.Tests.Controllers
+namespace SampleApp.Api.Resources.MyResource.Tests.Controllers
 {
     public class MyResourceControllerTests
     {
