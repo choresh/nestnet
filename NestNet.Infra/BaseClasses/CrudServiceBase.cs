@@ -10,9 +10,9 @@ using NestNet.Infra.Attributes;
 
 namespace NestNet.Infra.BaseClasses
 {
-    public abstract class CrudServiceBase<TEntity, TCreateDto, TUpdateDto, TResultDto, TQueryDto> : ICrudService<TEntity, TCreateDto, TUpdateDto, TResultDto, TQueryDto> where TEntity : IEntity where TQueryDto : class
+    public abstract class CrudServiceBase<TEntity, TCreateDto, TUpdateDto, TResultDto, TQueryDto> : ICrudService<TEntity, TCreateDto, TUpdateDto, TResultDto, TQueryDto> where TEntity : class, IEntity where TQueryDto : class
     {
-        protected readonly IDao<TEntity, TQueryDto> _dao;
+        protected readonly IAppRepositoryBase _repository;
         private readonly IMapper _mapper;
         private readonly List<string> _selectableProps;
 
@@ -41,14 +41,14 @@ namespace NestNet.Infra.BaseClasses
             }
         }
 
-        public CrudServiceBase(IDao<TEntity, TQueryDto> dao)
+        public CrudServiceBase(IAppRepositoryBase repository)
         {
             var config = new MapperConfiguration(cfg =>
             {
                 cfg.AddProfile<MyProfile>();
             });
             _mapper = config.CreateMapper();
-            _dao = dao;
+            _repository = repository;
            _selectableProps = typeof(TEntity)
                 .GetProperties()
                 .Where(IsSelectableProp)
@@ -58,20 +58,20 @@ namespace NestNet.Infra.BaseClasses
 
         public virtual async Task<IEnumerable<TResultDto>> GetAll()
         {
-            var entities = await _dao.GetAll();
+            var entities = await _repository.GetAll<TEntity>();
             return ToResultDtos(entities);
         }
 
         public virtual async Task<TResultDto?> GetById(long id)
         {
-            var entity = await _dao.GetById(id);
+            var entity = await _repository.GetById<TEntity>(id);
             return ToResultDto(entity);
         }
 
         public virtual async Task<InternalCreateResult<TResultDto>> Create(TCreateDto createDto)
         {
             TEntity entity = ToEntity(createDto); 
-            await _dao.Create(entity);
+            await _repository.Create(entity);
             return new InternalCreateResult<TResultDto>()
             {
                 ResultDto = ToResultDto(entity),
@@ -81,7 +81,7 @@ namespace NestNet.Infra.BaseClasses
 
         public virtual async Task<TResultDto?> Update(long id, TUpdateDto updateDto, bool ignoreMissingOrNullFields)
         {
-            var entity = await _dao.Update(id, updateDto, ignoreMissingOrNullFields);
+            var entity = await _repository.Update<TUpdateDto, TEntity>(id, updateDto, ignoreMissingOrNullFields);
             if (entity == null)
             {
                 return default;
@@ -94,7 +94,7 @@ namespace NestNet.Infra.BaseClasses
 
         public virtual async Task<bool> Delete(long id)
         {
-            return await _dao.Delete(id);
+            return await _repository.Delete<TEntity>(id);
         }
 
         public virtual async Task<DataWithOptionalError<PaginatedResult<TResultDto>>> GetPaginated(UnsafePaginationRequest unsafeRequest)
@@ -107,7 +107,7 @@ namespace NestNet.Infra.BaseClasses
                     Error = parsedPaginationRequest.Error,
                 };
             }
-            var result = await _dao.GetPaginated(parsedPaginationRequest.Data);
+            var result = await _repository.GetPaginated<TEntity>(parsedPaginationRequest.Data);
             return new()
             {
                 Data = ToPaginatedResultDtos(result)
@@ -283,13 +283,13 @@ namespace NestNet.Infra.BaseClasses
 
         public async Task<IEnumerable<TResultDto>> GetMany(FindManyArgs<TEntity, TQueryDto> filter)
         {
-            var entities = await _dao.GetMany(filter);
+            var entities = await _repository.GetMany<TEntity, TQueryDto>(filter);
             return ToResultDtos(entities);
         }
 
         public async Task<MetadataDto> GetMeta(FindManyArgs<TEntity, TQueryDto> filter)
         {
-            return await _dao.GetMeta(filter);
+            return await _repository.GetMeta<TEntity, TQueryDto>(filter);
         }
     }
 }

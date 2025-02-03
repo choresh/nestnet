@@ -6,51 +6,47 @@ using NestNet.Infra.Paginatation;
 
 namespace NestNet.Infra.BaseClasses
 {
-    public class DaoBase<TEntity, TQueryDto> : IDao<TEntity, TQueryDto> where TEntity : class, IEntity where TQueryDto: class
+    public abstract class AppRepositoryBase : IAppRepositoryBase
     {
         protected readonly DbContext _context;
-        protected readonly DbSet<TEntity> _dbSet;
-        protected readonly string _idFieldName;
 
-        public DaoBase(DbContext context, DbSet<TEntity> dbSet, string idFieldName)
+        public AppRepositoryBase(DbContext context)
         {
             _context = context;
-            _dbSet = dbSet;
-            _idFieldName = idFieldName;
         }
 
-        public virtual async Task<IEnumerable<TEntity>> GetAll()
+        public virtual async Task<IEnumerable<TEntity>> GetAll<TEntity>() where TEntity : class, IEntity
         {
-            return await _dbSet.ToListAsync();
+            return await _context.Set<TEntity>().ToListAsync();
         }
 
-        public virtual async Task<TEntity?> GetById(long id)
+        public virtual async Task<TEntity?> GetById<TEntity>(long id) where TEntity : class, IEntity
         {
-            return await _dbSet.FindAsync(id);
+            return await _context.Set<TEntity>().FindAsync(id);
         }
 
-        public virtual async Task Create(TEntity entity)
+        public virtual async Task Create<TEntity>(TEntity entity) where TEntity : class, IEntity
         {
-            _dbSet.Add(entity);
+            _context.Set<TEntity>().Add(entity);
             await _context.SaveChangesAsync();
         }
 
-        public virtual async Task<bool> Delete(long id)
+        public virtual async Task<bool> Delete<TEntity>(long id) where TEntity : class, IEntity
         {
-            var entity = await _dbSet.FindAsync(id);
+            var entity = await _context.Set<TEntity>().FindAsync(id);
             if (entity == null)
             {
                 return false;
             }
 
-            _dbSet.Remove(entity);
+            _context.Set<TEntity>().Remove(entity);
             await _context.SaveChangesAsync();
             return true;
         }
 
-        public virtual async Task<PaginatedResult<TEntity>> GetPaginated(SafePaginationRequest request)
+        public virtual async Task<PaginatedResult<TEntity>> GetPaginated<TEntity>(SafePaginationRequest request) where TEntity : class, IEntity
         {
-            IQueryable<TEntity> query = _dbSet;
+            IQueryable<TEntity> query = _context.Set<TEntity>();
 
             // Apply filtering
             if (request.FilterCriteria != null && request.FilterCriteria.Any())
@@ -111,7 +107,7 @@ namespace NestNet.Infra.BaseClasses
             {
                 // Atomic operation getting both count and items
                 var items = await query
-                    .Select(x => new 
+                    .Select(x => new
                     {
                         Data = x,
                         TotalCount = query.Count()
@@ -158,7 +154,7 @@ namespace NestNet.Infra.BaseClasses
             return result;
         }
 
-        public virtual async Task<TEntity?> Update<TUpdateDto>(long id, TUpdateDto updateDto, bool ignoreMissingOrNullFields)
+        public virtual async Task<TEntity?> Update<TUpdateDto, TEntity>(long id, TUpdateDto updateDto, bool ignoreMissingOrNullFields) where TEntity : class, IEntity
         {
             // Get all properties if not ignoring missing fields, otherwise only non-null properties
             var modifiedProperties = typeof(TUpdateDto).GetProperties()
@@ -167,10 +163,10 @@ namespace NestNet.Infra.BaseClasses
 
             if (modifiedProperties.Count == 0)
             {
-                throw new ArgumentException($"Properties for updating of Entity with {_idFieldName} {id} not supplied");
+                throw new ArgumentException($"Properties for updating of Entity with Id '{id}' not supplied");
             }
 
-            TEntity? entity = await _dbSet.FindAsync(id);
+            TEntity? entity = await _context.Set<TEntity>().FindAsync(id);
             if (entity != null)
             {
                 foreach (var dtoProp in modifiedProperties)
@@ -189,9 +185,9 @@ namespace NestNet.Infra.BaseClasses
             return entity;
         }
 
-        public async Task<IEnumerable<TEntity>> GetMany(FindManyArgs<TEntity, TQueryDto> filter)
+        public async Task<IEnumerable<TEntity>> GetMany<TEntity, TQueryDto>(FindManyArgs<TEntity, TQueryDto> filter) where TEntity : class, IEntity where TQueryDto : class
         {
-            return await _dbSet
+            return await _context.Set<TEntity>()
                 .ApplyWhere(filter.Where)
                 .ApplySkip(filter.Skip)
                 .ApplyTake(filter.Take)
@@ -199,9 +195,9 @@ namespace NestNet.Infra.BaseClasses
                 .ToListAsync();
         }
 
-        public async Task<MetadataDto> GetMeta(FindManyArgs<TEntity, TQueryDto> filter)
+        public async Task<MetadataDto> GetMeta<TEntity, TQueryDto>(FindManyArgs<TEntity, TQueryDto> filter) where TEntity : class, IEntity where TQueryDto : class
         {
-            var count = await _dbSet.ApplyWhere(filter.Where).CountAsync();
+            var count = await _context.Set<TEntity>().ApplyWhere(filter.Where).CountAsync();
             return new MetadataDto { Count = count };
         }
 
@@ -218,9 +214,9 @@ namespace NestNet.Infra.BaseClasses
         ///     e => e.Status == "Active" && e.CreatedDate > DateTime.UtcNow.AddDays(-7)
         /// );
         /// </summary>
-        public async Task<TEntity?> GetEntityByCondition(Expression<Func<TEntity, bool>> predicate)
+        public async Task<TEntity?> GetEntityByCondition<TEntity>(Expression<Func<TEntity, bool>> predicate) where TEntity : class, IEntity
         {
-            return await _dbSet.FirstOrDefaultAsync(predicate);
+            return await _context.Set<TEntity>().FirstOrDefaultAsync(predicate);
         }
 
         /// <summary>
@@ -271,9 +267,9 @@ namespace NestNet.Infra.BaseClasses
         ///          .ToListAsync());
         /// </code>
         /// </example>
-        public async Task<IEnumerable<TEntity>> GetEntities(Func<IQueryable<TEntity>, Task<List<TEntity>>> query)
+        public async Task<IEnumerable<TEntity>> GetEntities<TEntity>(Func<IQueryable<TEntity>, Task<List<TEntity>>> query) where TEntity : class, IEntity
         {
-            return await query(_dbSet);
+            return await query(_context.Set<TEntity>());
         }
     }
 }
