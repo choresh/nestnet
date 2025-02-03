@@ -8,7 +8,7 @@ namespace NestNet.Infra.Helpers
     {
         /// <summary>
         /// Support Dependency Injection for all classes with [Injectable] attribute
-        /// (Daos, Services, etc), within the given assembleis.
+        /// (Repository, Services, etc), within the given assembleis.
         /// </summary>
         /// <param name="services"></param>
         /// <param name="assembleis"></param>
