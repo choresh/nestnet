@@ -33,10 +33,6 @@ namespace NestNet.Cli.Generators.ResourceGenerator
 
             foreach (var projectType in Enum.GetValues<ProjectType>())
             {
-                if (projectType == ProjectType.Worker)
-                {
-                    continue; // This type not soppurted yet
-                }
                 AnsiConsole.MarkupLine(Helpers.FormatMessage($"\nResource generation ({projectType}) - started\n", "green"));
 
                 MultiProjectsGeneratorBase<ResourceGenerationContext> generator;
