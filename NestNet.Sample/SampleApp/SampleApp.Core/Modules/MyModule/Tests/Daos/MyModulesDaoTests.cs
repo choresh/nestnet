@@ -5,13 +5,13 @@ using NestNet.Infra.Paginatation;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using System.Text.Json;
-using SampleApp.Core.Modules.MyModules.Dtos;
+using Microsoft.EntityFrameworkCore;
 using SampleApp.Core.Modules.MyModules.Daos;
+using SampleApp.Core.Modules.MyModules.Dtos;
 using SampleApp.Core.Modules.MyModules.Entities;
 using SampleApp.Core.Data;
-using Microsoft.EntityFrameworkCore;
 
-namespace SampleApp.Core.Modules.MyModules.Tests.Daos
+namespace SampleApp.Modules.MyModules.Tests.Daos
 {
     public class MyModulesDaoTests : IDisposable, IAsyncLifetime
     {
@@ -45,7 +45,7 @@ namespace SampleApp.Core.Modules.MyModules.Tests.Daos
         {
             return Task.CompletedTask;
         }
-    
+
         public void Dispose()
         {
             _context.Database.EnsureDeleted();
@@ -90,7 +90,7 @@ namespace SampleApp.Core.Modules.MyModules.Tests.Daos
         {
             // Arrange
             var id = _fixture.Create<long>();
-          
+
             // Act
             var result = await _dao.GetById(id);
 
@@ -197,7 +197,7 @@ namespace SampleApp.Core.Modules.MyModules.Tests.Daos
         {
             // Arrange
             var id = _fixture.Create<long>();
-     
+
             // Act
             var found = await _dao.Delete(id);
 
@@ -279,12 +279,7 @@ namespace SampleApp.Core.Modules.MyModules.Tests.Daos
             // Assert
             Assert.NotNull(result);
             Assert.Single(result);
-            Assert.NotNull(result.FirstOrDefault());
-            Assert.Equal(
-                JsonSerializer.Serialize(expectedResult.FirstOrDefault()),
-                JsonSerializer.Serialize(result.FirstOrDefault()),
-                true
-            );
+            Assert.Equal(srcEntities[1], result.FirstOrDefault());
         }
 
         [Fact]

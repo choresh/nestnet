@@ -1,16 +1,16 @@
 using NSubstitute;
 using Xunit;
 using NestNet.Infra.Query;
-using NestNet.Infra.BaseClasses;
 using NestNet.Infra.Paginatation;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using System.Text.Json;
-using SampleApp.Core.Modules.MyModules.Services;
-using SampleApp.Core.Modules.MyModules.Dtos;
 using SampleApp.Core.Modules.MyModules.Daos;
+using SampleApp.Core.Modules.MyModules.Dtos;
+using SampleApp.Core.Modules.MyModules.Services;
+using SampleApp.Core.Modules.MyModules.Entities;
 
-namespace SampleApp.Core.Modules.MyModules.Tests.Services
+namespace SampleApp.Modules.MyModules.Tests.Services
 {
     public class MyModulesServiceTests
     {
@@ -35,7 +35,7 @@ namespace SampleApp.Core.Modules.MyModules.Tests.Services
 
             // Act
             var result = await _service.GetAll();
-  
+
             // Assert
             Assert.Equal(expectedResult.Count(), result.Count());
             Assert.Equal(
@@ -105,9 +105,9 @@ namespace SampleApp.Core.Modules.MyModules.Tests.Services
             var id = _fixture.Create<long>();
             var updateDto = _fixture.Create<MyModuleUpdateDto>();
             var updatedEntity = _service.ToEntity(updateDto);
-            var expectedResult = _service.ToResultDto(updatedEntity);           
+            var expectedResult = _service.ToResultDto(updatedEntity);
             _myModuleDao.Update(Arg.Any<long>(), Arg.Any<MyModuleUpdateDto>(), Arg.Any<bool>()).Returns(Task.FromResult<MyModuleEntity?>(updatedEntity));
-            
+
             // Act
             var result = await _service.Update(id, updateDto, ignoreMissingOrNullFields);
 
@@ -140,16 +140,20 @@ namespace SampleApp.Core.Modules.MyModules.Tests.Services
         {
             // Arrange
             var ignoreMissingOrNullFields = false;
-            var srcEntities = _fixture.CreateMany<MyModuleEntity>(3).ToList();
-            srcEntities.ForEach(async (entity) => await _myModuleDao.Create(entity));
+            var id = _fixture.Create<long>();
             var updateDto = _fixture.Create<MyModuleUpdateDto>();
+            var updatedEntity = _service.ToEntity(updateDto);
+            var expectedResult = _service.ToResultDto(updatedEntity);
+            _myModuleDao.Update(Arg.Any<long>(), Arg.Any<MyModuleUpdateDto>(), Arg.Any<bool>()).Returns(Task.FromResult<MyModuleEntity?>(updatedEntity));
 
             // Act
-            var result = await _service.Update(srcEntities[1].MyModuleId, updateDto, ignoreMissingOrNullFields);
+            var result = await _service.Update(id, updateDto, ignoreMissingOrNullFields);
 
             // Assert
-            Assert.NotNull(result);
-            TestsHelper.IsValuesExists(updateDto, result, Assert.Equal);
+            Assert.Equal(
+                JsonSerializer.Serialize(expectedResult),
+                JsonSerializer.Serialize(result));
+            await _myModuleDao.Received(1).Update(id, updateDto, ignoreMissingOrNullFields);
         }
 
         [Fact]
@@ -173,14 +177,16 @@ namespace SampleApp.Core.Modules.MyModules.Tests.Services
         public async Task Delete_ReturnsTrue_WhenExists()
         {
             // Arrange
-            var srcEntities = _fixture.CreateMany<MyModuleEntity>(3).ToList();
-            srcEntities.ForEach(async (entity) => await _myModuleDao.Create(entity));
+            var id = _fixture.Create<long>();
+            var entity = _fixture.Create<MyModuleEntity>();
+            _myModuleDao.Delete(Arg.Any<long>()).Returns(Task.FromResult(true));
 
             // Act
-            var found = await _service.Delete(srcEntities[1].MyModuleId);
+            var found = await _service.Delete(id);
 
             // Assert
             Assert.True(found);
+            await _myModuleDao.Received(1).Delete(id);
         }
 
         [Fact]
@@ -188,39 +194,29 @@ namespace SampleApp.Core.Modules.MyModules.Tests.Services
         {
             // Arrange
             var id = _fixture.Create<long>();
-     
+            _myModuleDao.Delete(Arg.Any<long>()).Returns(Task.FromResult(false));
+
             // Act
             var found = await _service.Delete(id);
 
             // Assert
             Assert.False(found);
+            await _myModuleDao.Received(1).Delete(id);
         }
 
         [Fact]
         public async Task GetPaginated_ReturnsPaginatedItems()
         {
             // Arrange
-            var srcEntities = _fixture.CreateMany<MyModuleEntity>(3)
-               .Select((entity, index) => {
-                   entity.MyModuleId = index + 1;
-                   return entity;
-               })
-               .ToList();
-            srcEntities.ForEach(async (entity) => await _myModuleDao.Create(entity));
-            var value = srcEntities[1].MyModuleId;
-            var propertyName = "MyModuleId";
-            var resultItems = srcEntities
-                  .Where(e => (e.MyModuleId != value))
-                  .OrderByDescending(e => e.MyModuleId);
+            var propertyName = "myModuleId";
             var safeRequest = new SafePaginationRequest()
             {
-                IncludeTotalCount = true,
                 SortCriteria = new List<SortCriteria>()
                 {
                     new SortCriteria()
                     {
                         PropertyName = propertyName,
-                        SortDirection = SortDirection.Desc
+                        SortDirection = SortDirection.Asc
                     }
                 },
                 FilterCriteria = new List<FilterCriteria>()
@@ -228,26 +224,226 @@ namespace SampleApp.Core.Modules.MyModules.Tests.Services
                     new FilterCriteria()
                     {
                         PropertyName = propertyName,
-                        Value = value.ToString(),
+                        Value = "1",
                         Operator = FilterOperator.NotEquals
                     }
                 }
             };
-            var expectedResult = new PaginatedResult<MyModuleEntity>
+
+            var srcEntities = _fixture.CreateMany<MyModuleEntity>(3)
+              .Select((entity, index) => {
+                  entity.MyModuleId = index;
+                  return entity;
+              })
+              .ToList();
+
+            var unsafeRequest = new UnsafePaginationRequest()
             {
-                Items = resultItems,
-                TotalCount = resultItems.Count()
+                PageNumber = safeRequest.PageNumber,
+                PageSize = safeRequest.PageSize,
+                IncludeTotalCount = safeRequest.IncludeTotalCount,
+                SortBy = safeRequest.SortCriteria.Select(c => c.PropertyName).ToArray(),
+                SortDirection = safeRequest.SortCriteria.Select(c => c.SortDirection.ToString()).ToArray(),
+                FilterBy = safeRequest.FilterCriteria.Select(f => f.PropertyName).ToArray(),
+                FilterOperator = safeRequest.FilterCriteria.Select(f => f.Operator.ToString()).ToArray(),
+                FilterValue = safeRequest.FilterCriteria.Select(f => f.Value).ToArray()
             };
 
+            var daoResult = new PaginatedResult<MyModuleEntity>
+            {
+                Items = srcEntities,
+                TotalCount = srcEntities.Count()
+            };
+
+            var expectedResult = _service.ToPaginatedResultDtos(daoResult);
+            _myModuleDao.GetPaginated(Arg.Any<SafePaginationRequest>()).Returns(Task.FromResult(daoResult));
+
             // Act
-            var result = await _service.GetPaginated(safeRequest);
+            var result = await _service.GetPaginated(unsafeRequest);
 
             // Assert
-            Assert.NotNull(result);
-            Assert.Equal(expectedResult.TotalCount, result.TotalCount);
+            Assert.NotNull(result.Data);
+            Assert.Null(result.Error);
+            Assert.Equal(expectedResult.TotalCount, result.Data.TotalCount);
             Assert.Equal(
                 JsonSerializer.Serialize(expectedResult.Items),
-                JsonSerializer.Serialize(result.Items));
+                JsonSerializer.Serialize(result.Data.Items));
+            var receivedCalls = _myModuleDao.ReceivedCalls();
+            Assert.NotNull(receivedCalls);
+            Assert.Single(receivedCalls);
+            var receivedCall = receivedCalls.FirstOrDefault();
+            Assert.NotNull(receivedCall);
+            var receivedCallArguments = receivedCall.GetArguments();
+            Assert.Single(receivedCallArguments);
+            var receivedCallArgument = receivedCallArguments.FirstOrDefault();
+            Assert.NotNull(receivedCallArgument);
+            Assert.Equal(
+                JsonSerializer.Serialize(receivedCallArgument),
+                JsonSerializer.Serialize(safeRequest),
+                true
+            );
+        }
+
+        [Fact]
+        public async Task GetPaginated_IncompleteCriteria_ReturnsParametersError()
+        {
+            // Arrange
+            var propertyName = "MyModuleId";
+            var safeRequest = new SafePaginationRequest()
+            {
+                SortCriteria = new List<SortCriteria>()
+                {
+                    new SortCriteria()
+                    {
+                        PropertyName = propertyName,
+                        SortDirection = SortDirection.Asc
+                    }
+                },
+                FilterCriteria = new List<FilterCriteria>()
+                {
+                    new FilterCriteria()
+                    {
+                        PropertyName = propertyName,
+                        Value = "1",
+                        Operator = FilterOperator.NotEquals
+                    }
+                }
+            };
+            var srcEntities = _fixture.CreateMany<MyModuleEntity>(3).ToList();
+            var unsafeRequest = new UnsafePaginationRequest()
+            {
+                PageNumber = safeRequest.PageNumber,
+                PageSize = safeRequest.PageSize,
+                IncludeTotalCount = safeRequest.IncludeTotalCount,
+                // SortBy = safeRequest.SortCriteria.Select(c => c.PropertyName).ToArray(),
+                SortDirection = safeRequest.SortCriteria.Select(c => c.SortDirection.ToString()).ToArray(),
+                // FilterBy = safeRequest.FilterCriteria.Select(f => f.PropertyName).ToArray(),
+                FilterOperator = safeRequest.FilterCriteria.Select(f => f.Operator.ToString()).ToArray(),
+                FilterValue = safeRequest.FilterCriteria.Select(f => f.Value).ToArray()
+            };
+            var daoResult = new PaginatedResult<MyModuleEntity>
+            {
+                Items = srcEntities,
+                TotalCount = srcEntities.Count()
+            };
+            _myModuleDao.GetPaginated(Arg.Any<SafePaginationRequest>()).Returns(Task.FromResult(daoResult));
+
+            // Act
+            var result = await _service.GetPaginated(unsafeRequest);
+
+            // Assert
+            Assert.Null(result.Data);
+            Assert.NotNull(result.Error);
+            Assert.Contains("Sort criteria is incomplete", result.Error);
+            Assert.Contains("Filter criteria is incomplete", result.Error);
+        }
+
+        [Fact]
+        public async Task GetPaginated_InvalidEnumValue_ReturnsParametersError()
+        {
+            // Arrange
+            var propertyName = "MyModuleId";
+            var safeRequest = new SafePaginationRequest()
+            {
+                SortCriteria = new List<SortCriteria>()
+                {
+                    new SortCriteria()
+                    {
+                        PropertyName = propertyName,
+                        SortDirection = SortDirection.Asc
+                    }
+                },
+                FilterCriteria = new List<FilterCriteria>()
+                {
+                    new FilterCriteria()
+                    {
+                        PropertyName = propertyName,
+                        Value = "1",
+                        Operator = FilterOperator.NotEquals
+                    }
+                }
+            };
+            var srcEntities = _fixture.CreateMany<MyModuleEntity>(3).ToList();
+            var unsafeRequest = new UnsafePaginationRequest()
+            {
+                PageNumber = safeRequest.PageNumber,
+                PageSize = safeRequest.PageSize,
+                IncludeTotalCount = safeRequest.IncludeTotalCount,
+                SortBy = safeRequest.SortCriteria.Select(c => c.PropertyName).ToArray(),
+                SortDirection = safeRequest.SortCriteria.Select(c => c.SortDirection.ToString() + "Blabla").ToArray(),
+                FilterBy = safeRequest.FilterCriteria.Select(f => f.PropertyName).ToArray(),
+                FilterOperator = safeRequest.FilterCriteria.Select(f => f.Operator.ToString() + "Blabla").ToArray(),
+                FilterValue = safeRequest.FilterCriteria.Select(f => f.Value).ToArray()
+            };
+            var daoResult = new PaginatedResult<MyModuleEntity>
+            {
+                Items = srcEntities,
+                TotalCount = srcEntities.Count()
+            };
+            _myModuleDao.GetPaginated(Arg.Any<SafePaginationRequest>()).Returns(Task.FromResult(daoResult));
+
+            // Act
+            var result = await _service.GetPaginated(unsafeRequest);
+
+            // Assert
+            Assert.Null(result.Data);
+            Assert.NotNull(result.Error);
+            Assert.Contains("Invalid sort direction", result.Error);
+            Assert.Contains("Invalid filter operator", result.Error);
+        }
+
+        [Fact]
+        public async Task GetPaginated_InvalidPropertyName_ReturnsParametersError()
+        {
+            // Arrange
+            var propertyName = "MyModuleId";
+            var safeRequest = new SafePaginationRequest()
+            {
+                SortCriteria = new List<SortCriteria>()
+                {
+                    new SortCriteria()
+                    {
+                        PropertyName = propertyName,
+                        SortDirection = SortDirection.Asc
+                    }
+                },
+                FilterCriteria = new List<FilterCriteria>()
+                {
+                    new FilterCriteria()
+                    {
+                        PropertyName = propertyName,
+                        Value = "1",
+                        Operator = FilterOperator.NotEquals
+                    }
+                }
+            };
+            var unsafeRequest = new UnsafePaginationRequest()
+            {
+                PageNumber = safeRequest.PageNumber,
+                PageSize = safeRequest.PageSize,
+                IncludeTotalCount = safeRequest.IncludeTotalCount,
+                SortBy = safeRequest.SortCriteria.Select(c => c.PropertyName + "Blabla").ToArray(),
+                SortDirection = safeRequest.SortCriteria.Select(c => c.SortDirection.ToString()).ToArray(),
+                FilterBy = safeRequest.FilterCriteria.Select(f => f.PropertyName + "Blabla").ToArray(),
+                FilterOperator = safeRequest.FilterCriteria.Select(f => f.Operator.ToString()).ToArray(),
+                FilterValue = safeRequest.FilterCriteria.Select(f => f.Value).ToArray()
+            };
+            var srcEntities = _fixture.CreateMany<MyModuleEntity>(3).ToList();
+            var daoResult = new PaginatedResult<MyModuleEntity>
+            {
+                Items = srcEntities,
+                TotalCount = srcEntities.Count()
+            };
+            _myModuleDao.GetPaginated(Arg.Any<SafePaginationRequest>()).Returns(Task.FromResult(daoResult));
+
+            // Act
+            var result = await _service.GetPaginated(unsafeRequest);
+
+            // Assert
+            Assert.Null(result.Data);
+            Assert.NotNull(result.Error);
+            Assert.Contains("Invalid sort properties", result.Error);
+            Assert.Contains("Invalid filter properties", result.Error);
         }
 
         [Fact]
@@ -255,7 +451,8 @@ namespace SampleApp.Core.Modules.MyModules.Tests.Services
         {
             // Arrange
             var srcEntities = _fixture.CreateMany<MyModuleEntity>(3).ToList();
-            srcEntities.ForEach(async (entity) => await _myModuleDao.Create(entity));
+            var expectedResult = _service.ToResultDtos([srcEntities.ToArray()[1]]);
+            _myModuleDao.GetMany(Arg.Any<FindManyArgs<MyModuleEntity, MyModuleQueryDto>>()).Returns(Task.FromResult<IEnumerable<MyModuleEntity>>([srcEntities.ToArray()[1]]));
             var filter = new FindManyArgs<MyModuleEntity, MyModuleQueryDto>()
             {
                 Where = new MyModuleQueryDto
@@ -283,8 +480,7 @@ namespace SampleApp.Core.Modules.MyModules.Tests.Services
         public async Task GetMany_ReturnsEmptyList_WhenNoIdsMatch()
         {
             // Arrange
-            var srcEntities = _fixture.CreateMany<MyModuleEntity>(3).ToList();
-            srcEntities.ForEach(async (entity) => await _myModuleDao.Create(entity));
+            _myModuleDao.GetMany(Arg.Any<FindManyArgs<MyModuleEntity, MyModuleQueryDto>>()).Returns(Task.FromResult<IEnumerable<MyModuleEntity>>([]));
             var filter = new FindManyArgs<MyModuleEntity, MyModuleQueryDto>()
             {
                 Where = new MyModuleQueryDto
@@ -306,13 +502,13 @@ namespace SampleApp.Core.Modules.MyModules.Tests.Services
         public async Task GetMeta_ReturnsCorrectMetadata()
         {
             // Arrange
-            var srcEntities = _fixture.CreateMany<MyModuleEntity>(3).ToList();
-            srcEntities.ForEach(async (entity) => await _myModuleDao.Create(entity));
+            var count = _fixture.Create<long>();
+            _myModuleDao.GetMeta(Arg.Any<FindManyArgs<MyModuleEntity, MyModuleQueryDto>>()).Returns(Task.FromResult(new MetadataDto() { Count = count }));
             var filter = new FindManyArgs<MyModuleEntity, MyModuleQueryDto>()
             {
                 Where = new MyModuleQueryDto
                 {
-                    MyModuleId = srcEntities[1].MyModuleId
+                    MyModuleId = -1
                 }
             };
 
@@ -321,7 +517,8 @@ namespace SampleApp.Core.Modules.MyModules.Tests.Services
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal(1, result.Count);
+            Assert.Equal(count, result.Count);
+            await _myModuleDao.Received(1).GetMeta(filter);
         }
     }
 }
