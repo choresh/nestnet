@@ -12,7 +12,7 @@ using SampleApp.Core.Modules.MyModules.Dtos;
 using SampleApp.Core.Modules.MyModules.Services;
 using SampleApp.Core.Modules.MyModules.Entities;
 
-namespace SampleApp.Modules.MyModules.Tests.Controllers
+namespace SampleApp.Api.Modules.MyModules.Tests.Controllers
 {
     public class MyModulesControllerTests
     {
