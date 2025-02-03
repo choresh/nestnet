@@ -4,8 +4,8 @@ using Xunit;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
 using SampleApp.Api.Resources.MyResource.Controllers;
-using SampleApp.Api.Resources.MyResource.Dtos;
-using SampleApp.Api.Resources.MyResource.Services;
+using SampleApp.Core.Resources.MyResource.Dtos;
+using SampleApp.Core.Resources.MyResource.Services;
 
 namespace SampleApp.Api.Resources.MyResource.Tests.Controllers
 {
