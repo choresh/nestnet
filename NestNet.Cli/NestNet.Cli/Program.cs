@@ -149,14 +149,14 @@ class Program
             switch (appType)
             {
                 case "API Application":
-                    appTypes.Add(AppType.ApiApp);
+                    appTypes.Add(AppType.Api);
                     break;
                 case "Worker Service":
-                    appTypes.Add(AppType.WorkerApp);
+                    appTypes.Add(AppType.Worker);
                     break;
                 case "Both (API + Worker)":
-                    appTypes.Add(AppType.ApiApp);
-                    appTypes.Add(AppType.WorkerApp);
+                    appTypes.Add(AppType.Api);
+                    appTypes.Add(AppType.Worker);
                     break;
                 default:
                     throw new ArgumentException("Invalid app type");
@@ -412,14 +412,14 @@ class Program
                     switch (appType)
                     {
                         case "API Application":
-                            appTypes.Add(AppType.ApiApp);
+                            appTypes.Add(AppType.Api);
                             break;
                         case "Worker Service":
-                            appTypes.Add(AppType.WorkerApp);
+                            appTypes.Add(AppType.Worker);
                             break;
                         case "Both (API + Worker)":
-                            appTypes.Add(AppType.ApiApp);
-                            appTypes.Add(AppType.WorkerApp);
+                            appTypes.Add(AppType.Api);
+                            appTypes.Add(AppType.Worker);
                             break;
                         default:
                             throw new ArgumentException("Invalid app type");

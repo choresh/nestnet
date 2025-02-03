@@ -2,7 +2,7 @@
 {
     public enum AppType
     {
-        ApiApp,
-        WorkerApp
+        Api,
+        Worker
     }
 }

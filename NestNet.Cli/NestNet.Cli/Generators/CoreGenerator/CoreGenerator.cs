@@ -1,6 +1,8 @@
 using NestNet.Cli.Infra;
 using NestNet.Infra.Enums;
 using Spectre.Console;
+using static NestNet.Cli.Generators.AppGenerator.AppGenerator;
+using System.Xml.Linq;
 
 namespace NestNet.Cli.Generators.CoreGenerator
 {
@@ -164,5 +166,40 @@ namespace {context.CurrProjectName}.Data
                 CorePath = corePath
             };
         }
+
+        /*
+        // ZZZ!
+        private static void AddDtoGenerator(AppGenerationContext context)
+        {
+            AnsiConsole.MarkupLine(Helpers.FormatMessage("\nPre-build event that runs the Dtos generator will be added to the project...", "green"));
+
+            var csprojPath = Path.Combine(context.CurrentDir, $"{context.BaseProjectName}.csproj");
+            var doc = XDocument.Load(csprojPath);
+            if (doc.Root == null)
+            {
+                AnsiConsole.MarkupLine(Helpers.FormatMessage("\nPre-build event that runs the Dtos generator cannot be added to the project...", "red"));
+                return;
+            }
+            var ns = doc.Root.Name.Namespace;
+
+            var propertyGroup = doc.Root.Elements(ns + "PropertyGroup").First();
+            propertyGroup.Add(new XElement(ns + "GenerateDocumentationFile", "true"));
+
+            var target = new XElement(ns + "Target",
+               new XAttribute("Name", "PostBuild"),
+               new XAttribute("AfterTargets", "PostBuildEvent"),
+               new XElement(ns + "Exec",
+                   new XAttribute("Command", "nestnet.exe dtos --tar-dir \\Dtos --no-console")
+               )
+           );
+
+            doc.Root.Add(target);
+            doc.Save(csprojPath);
+
+            AnsiConsole.MarkupLine(Helpers.FormatMessage($"Updated: {csprojPath}", "grey"));
+
+            AnsiConsole.MarkupLine(Helpers.FormatMessage("Pre-build event that runs the Dtos generator has been added to the project", "green"));
+        }
+        */
     }
 }
