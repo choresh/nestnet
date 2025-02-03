@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 
 namespace NestNet.Cli.Infra
 {
-    internal static partial class Helpers
+    internal static class Helpers
     {
         public static bool CheckTarDir(string tarDirPath)
         {

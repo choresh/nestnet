@@ -1,52 +1,51 @@
 ﻿using NestNet.Cli.Generators.Common;
 using NestNet.Cli.Infra;
 using Spectre.Console;
+using static NestNet.Cli.Generators.ModuleGenerator.ModuleGenerator;
 
 namespace NestNet.Cli.Generators.ModuleGenerator
 {
-    internal static partial class ModuleGenerator
+    internal class ApiModuleGenerator : MultiProjectsGeneratorBase<ModuleGenerationContext>
     {
-        private class ApiModuleGenerator : MultiProjectsGeneratorBase<ModuleGenerationContext>
+        public ApiModuleGenerator()
+            : base(ProjectType.Api)
         {
-            public ApiModuleGenerator()
-                : base(ProjectType.Api)
+        }
+
+        public override void DoGenerate()
+        {
+            if (Context.GenerateController)
             {
+                // Ensure API directory exists
+                Directory.CreateDirectory(Context.ProjectContext!.TargetPath);
+
+                CreateControllerFile();
+                CreateControllerTestFile();
             }
+        }
 
-            public override void DoGenerate()
-            {
-                if (Context.GenerateController)
-                {
-                    // Ensure API directory exists
-                    Directory.CreateDirectory(Context.ProjectContext!.TargetPath);
+        private void CreateControllerFile()
+        {
+            string controllerContent = GetControllerContent();
+            string controllerPath = Path.Combine(Context.ProjectContext!.TargetPath, "Controllers", $"{Context.PluralizedModuleName}Controller.cs");
+            Directory.CreateDirectory(GetDirectoryName(controllerPath));
+            File.WriteAllText(controllerPath, controllerContent);
+            AnsiConsole.MarkupLine(Helpers.FormatMessage($"Created: {controllerPath}", "grey"));
+        }
 
-                    CreateControllerFile();
-                    CreateControllerTestFile();
-                }
-            }
+        private void CreateControllerTestFile()
+        {
+            string testContent = GetControllerTestContent();
+            string testPath = Path.Combine(Context.ProjectContext!.TargetPath, "Tests", "Controllers", $"{Context.PluralizedModuleName}ControllerTests.cs");
+            Directory.CreateDirectory(GetDirectoryName(testPath));
+            File.WriteAllText(testPath, testContent);
+            AnsiConsole.MarkupLine(Helpers.FormatMessage($"Created: {testPath}", "grey"));
+        }
 
-            private void CreateControllerFile()
-            {
-                string controllerContent = GetControllerContent();
-                string controllerPath = Path.Combine(Context.ProjectContext!.TargetPath, "Controllers", $"{Context.PluralizedModuleName}Controller.cs");
-                Directory.CreateDirectory(GetDirectoryName(controllerPath));
-                File.WriteAllText(controllerPath, controllerContent);
-                AnsiConsole.MarkupLine(Helpers.FormatMessage($"Created: {controllerPath}", "grey"));
-            }
-
-            private void CreateControllerTestFile()
-            {
-                string testContent = GetControllerTestContent();
-                string testPath = Path.Combine(Context.ProjectContext!.TargetPath, "Tests", "Controllers", $"{Context.PluralizedModuleName}ControllerTests.cs");
-                Directory.CreateDirectory(GetDirectoryName(testPath));
-                File.WriteAllText(testPath, testContent);
-                AnsiConsole.MarkupLine(Helpers.FormatMessage($"Created: {testPath}", "grey"));
-            }
-
-            private string GetControllerContent()
-            {
-                var srcProjectName = Context.ProjectContext!.ProjectName.Replace(".Api", ".Core");
-                return $@"#pragma warning disable IDE0290 // Use primary constructor
+        private string GetControllerContent()
+        {
+            var srcProjectName = Context.ProjectContext!.ProjectName.Replace(".Api", ".Core");
+            return $@"#pragma warning disable IDE0290 // Use primary constructor
 using Microsoft.AspNetCore.Mvc;
 using NestNet.Infra.BaseClasses;
 using {srcProjectName}.Modules.{Context.PluralizedModuleName}.Dtos;
@@ -96,12 +95,12 @@ namespace {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModul
 }}
 
 #pragma warning restore IDE0290 // Use primary constructor";
-            }
+        }
 
-            private string GetControllerTestContent()
-            {
-                var srcProjectName = Context.ProjectContext!.ProjectName.Replace(".Api", ".Core");
-                return $@"using Microsoft.AspNetCore.Mvc;
+        private string GetControllerTestContent()
+        {
+            var srcProjectName = Context.ProjectContext!.ProjectName.Replace(".Api", ".Core");
+            return $@"using Microsoft.AspNetCore.Mvc;
 using NSubstitute;
 using Xunit;
 using NestNet.Infra.Query;
@@ -500,7 +499,6 @@ namespace {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModul
         }}
     }}
 }}";
-            }
         }
     }
 }

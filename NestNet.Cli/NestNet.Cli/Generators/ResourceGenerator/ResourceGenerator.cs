@@ -1,4 +1,5 @@
 ﻿using NestNet.Cli.Generators.Common;
+using NestNet.Cli.Generators.ResourceGenerator.Internals;
 using NestNet.Cli.Infra;
 using NestNet.Infra.Helpers;
 using Spectre.Console;
@@ -14,22 +15,6 @@ namespace NestNet.Cli.Generators.ResourceGenerator
             /// Name of the resource.
             /// </summary>
             public required string ResourceName { get; set; }
-        }
-
-        private enum SampleDtoType
-        {
-            Input,
-            Output
-        }
-
-        private class ResourceGenerationContext : BaseGenerationContext
-        {
-            public required string ParamName { get; set; }
-            public required string KebabCaseResourceName { get; set; }
-            public required string SampleInputDtoName { get; set; }
-            public required string SampleOutputDtoName { get; set; }
-            public bool GenerateController { get; set; }
-            public bool GenerateConsumer { get; set; }
         }
 
         public static void Run(InputParams? inputParams = null)

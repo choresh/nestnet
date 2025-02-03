@@ -3,7 +3,7 @@ using DbType = NestNet.Infra.Enums.DbType;
 
 namespace NestNet.Cli.Generators.AppGenerator
 {
-    public abstract class AppGeneratorBase
+    internal abstract class AppGeneratorBase
     {
         protected AppType AppType { get; }
 

@@ -2,7 +2,7 @@
 
 namespace NestNet.Cli.Generators.AppGenerator
 {
-    public class AppGenerationContext
+    internal class AppGenerationContext
     {
         // public required string CurrentDir { get; set; }
         public required string BaseProjectName { get; set; }

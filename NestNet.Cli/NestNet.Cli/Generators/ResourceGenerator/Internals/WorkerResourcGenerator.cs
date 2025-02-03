@@ -1,51 +1,50 @@
 ﻿using NestNet.Cli.Generators.Common;
+using NestNet.Cli.Generators.ResourceGenerator.Internals;
 using NestNet.Cli.Infra;
 using Spectre.Console;
 
 namespace NestNet.Cli.Generators.ResourceGenerator
 {
-    internal static partial class ResourceGenerator
+    internal class WorkerResourceGenerator : MultiProjectsGeneratorBase<ResourceGenerationContext>
     {
-        private class WorkerResourceGenerator : MultiProjectsGeneratorBase<ResourceGenerationContext>
+        public WorkerResourceGenerator()
+            : base(ProjectType.Worker)
         {
-            public WorkerResourceGenerator()
-                : base(ProjectType.Worker)
+        }
+
+        public override void DoGenerate()
+        {
+            if (Context.GenerateConsumer)
             {
+                // Ensure Worker directory exists
+                Directory.CreateDirectory(Context.ProjectContext!.TargetPath);
+
+                CreateConsumerFile();
+                CreateConsumerTestFile();
             }
+        }
 
-            public override void DoGenerate()
-            {
-                if (Context.GenerateConsumer)
-                {
-                    // Ensure Worker directory exists
-                    Directory.CreateDirectory(Context.ProjectContext!.TargetPath);
+        private void CreateConsumerFile()
+        {
+            string consumerContent = GetConsumerContent();
+            string consumerPath = Path.Combine(Context.ProjectContext!.TargetPath, "Consumers", $"{Context.ArtifactName}Consumer.cs");
+            Directory.CreateDirectory(GetDirectoryName(consumerPath));
+            File.WriteAllText(consumerPath, consumerContent);
+            AnsiConsole.MarkupLine(Helpers.FormatMessage($"Created: {consumerPath}", "grey"));
+        }
 
-                    CreateConsumerFile();
-                    CreateConsumerTestFile();
-                }
-            }
+        private void CreateConsumerTestFile()
+        {
+            string testContent = GetConsumerTestContent();
+            string testPath = Path.Combine(Context.ProjectContext!.TargetPath, "Tests", "Consumers", $"{Context.ArtifactName}ConsumerTests.cs");
+            Directory.CreateDirectory(GetDirectoryName(testPath));
+            File.WriteAllText(testPath, testContent);
+            AnsiConsole.MarkupLine(Helpers.FormatMessage($"Created: {testPath}", "grey"));
+        }
 
-            private void CreateConsumerFile()
-            {
-                string controllerContent = GetConsumerContent();
-                string controllerPath = Path.Combine(Context.ProjectContext!.TargetPath, "Consumers", $"{Context.ArtifactName}Controller.cs");
-                Directory.CreateDirectory(GetDirectoryName(controllerPath));
-                File.WriteAllText(controllerPath, controllerContent);
-                AnsiConsole.MarkupLine(Helpers.FormatMessage($"Created: {controllerPath}", "grey"));
-            }
-
-            private void CreateConsumerTestFile()
-            {
-                string testContent = GetConsumerTestContent();
-                string testPath = Path.Combine(Context.ProjectContext!.TargetPath, "Tests", "Consumers", $"{Context.ArtifactName}ControllerTests.cs");
-                Directory.CreateDirectory(GetDirectoryName(testPath));
-                File.WriteAllText(testPath, testContent);
-                AnsiConsole.MarkupLine(Helpers.FormatMessage($"Created: {testPath}", "grey"));
-            }
-
-            private string GetConsumerContent()
-            {
-                return $$"""
+        private string GetConsumerContent()
+        {
+            return $$"""
                 using MassTransit;           
 
                 namespace {{Context.ProjectContext!.ProjectName}}.Resources.{{Context.ArtifactName}}.Consumers;
@@ -65,11 +64,11 @@ namespace NestNet.Cli.Generators.ResourceGenerator
                     }
                 }
                 """;
-            }
+        }
 
-            private string GetConsumerTestContent()
-            {
-                return $@"using MassTransit;
+        private string GetConsumerTestContent()
+        {
+            return $@"using MassTransit;
 using NSubstitute;
 using Xunit;
 using AutoFixture;
@@ -107,7 +106,6 @@ namespace {Context.ProjectContext!.ProjectName}.Resources.{Context.ArtifactName}
         }}
     }}
 }}";
-            }
         }
     }
 }

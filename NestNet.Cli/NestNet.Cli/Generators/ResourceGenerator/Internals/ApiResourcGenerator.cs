@@ -1,52 +1,51 @@
 ﻿using NestNet.Cli.Generators.Common;
+using NestNet.Cli.Generators.ResourceGenerator.Internals;
 using NestNet.Cli.Infra;
 using Spectre.Console;
 
 namespace NestNet.Cli.Generators.ResourceGenerator
 {
-    internal static partial class ResourceGenerator
+    internal class ApiResourceGenerator : MultiProjectsGeneratorBase<ResourceGenerationContext>
     {
-        private class ApiResourceGenerator : MultiProjectsGeneratorBase<ResourceGenerationContext>
+        public ApiResourceGenerator()
+            : base(ProjectType.Api)
         {
-            public ApiResourceGenerator()
-                : base(ProjectType.Api)
+        }
+
+        public override void DoGenerate()
+        {
+            if (Context.GenerateController)
             {
+                // Ensure API directory exists
+                Directory.CreateDirectory(Context.ProjectContext!.TargetPath);
+
+                CreateControllerFile();
+                CreateControllerTestFile();
             }
+        }
 
-            public override void DoGenerate()
-            {
-                if (Context.GenerateController)
-                {
-                    // Ensure API directory exists
-                    Directory.CreateDirectory(Context.ProjectContext!.TargetPath);
+        private void CreateControllerFile()
+        {
+            string controllerContent = GetControllerContent();
+            string controllerPath = Path.Combine(Context.ProjectContext!.TargetPath, "Controllers", $"{Context.ArtifactName}Controller.cs");
+            Directory.CreateDirectory(GetDirectoryName(controllerPath));
+            File.WriteAllText(controllerPath, controllerContent);
+            AnsiConsole.MarkupLine(Helpers.FormatMessage($"Created: {controllerPath}", "grey"));
+        }
 
-                    CreateControllerFile();
-                    CreateControllerTestFile();
-                }
-            }
+        private void CreateControllerTestFile()
+        {
+            string testContent = GetControllerTestContent();
+            string testPath = Path.Combine(Context.ProjectContext!.TargetPath, "Tests", "Controllers", $"{Context.ArtifactName}ControllerTests.cs");
+            Directory.CreateDirectory(GetDirectoryName(testPath));
+            File.WriteAllText(testPath, testContent);
+            AnsiConsole.MarkupLine(Helpers.FormatMessage($"Created: {testPath}", "grey"));
+        }
 
-            private void CreateControllerFile()
-            {
-                string controllerContent = GetControllerContent();
-                string controllerPath = Path.Combine(Context.ProjectContext!.TargetPath, "Controllers", $"{Context.ArtifactName}Controller.cs");
-                Directory.CreateDirectory(GetDirectoryName(controllerPath));
-                File.WriteAllText(controllerPath, controllerContent);
-                AnsiConsole.MarkupLine(Helpers.FormatMessage($"Created: {controllerPath}", "grey"));
-            }
-
-            private void CreateControllerTestFile()
-            {
-                string testContent = GetControllerTestContent();
-                string testPath = Path.Combine(Context.ProjectContext!.TargetPath, "Tests", "Controllers", $"{Context.ArtifactName}ControllerTests.cs");
-                Directory.CreateDirectory(GetDirectoryName(testPath));
-                File.WriteAllText(testPath, testContent);
-                AnsiConsole.MarkupLine(Helpers.FormatMessage($"Created: {testPath}", "grey"));
-            }
-
-            private string GetControllerContent()
-            {
-                var srcProjectName = Context.ProjectContext!.ProjectName.Replace(".Api", ".Core");
-                return $@"#pragma warning disable IDE0290 // Use primary constructor
+        private string GetControllerContent()
+        {
+            var srcProjectName = Context.ProjectContext!.ProjectName.Replace(".Api", ".Core");
+            return $@"#pragma warning disable IDE0290 // Use primary constructor
 using Microsoft.AspNetCore.Mvc;
 using {srcProjectName}.Resources.{Context.ArtifactName}.Dtos;
 using {srcProjectName}.Resources.{Context.ArtifactName}.Services;
@@ -83,12 +82,12 @@ namespace {Context.ProjectContext!.ProjectName}.Resources.{Context.ArtifactName}
 }}
 
 #pragma warning restore IDE0290 // Use primary constructor";
-            }
+        }
 
-            private string GetControllerTestContent()
-            {
-                var srcProjectName = Context.ProjectContext!.ProjectName.Replace(".Api", ".Core");
-                return $@"using Microsoft.AspNetCore.Mvc;
+        private string GetControllerTestContent()
+        {
+            var srcProjectName = Context.ProjectContext!.ProjectName.Replace(".Api", ".Core");
+            return $@"using Microsoft.AspNetCore.Mvc;
 using NSubstitute;
 using Xunit;
 using AutoFixture;
@@ -134,7 +133,6 @@ namespace {Context.ProjectContext!.ProjectName}.Resources.{Context.ArtifactName}
     }}
 }}";
 
-            }
         }
     }
 }

@@ -4,118 +4,116 @@ using Spectre.Console;
 
 namespace NestNet.Cli.Generators.ModuleGenerator
 {
-    internal static partial class ModuleGenerator
+    internal class CoreModuleGenerator : MultiProjectsGeneratorBase<ModuleGenerationContext>
     {
-        private class CoreModuleGenerator : MultiProjectsGeneratorBase<ModuleGenerationContext>
+        public CoreModuleGenerator()
+            : base(ProjectType.Core)
         {
-            public CoreModuleGenerator()
-                : base(ProjectType.Core)
+        }
+
+        public override void DoGenerate()
+        {
+            if (Context.GenerateDbSupport)
             {
+                // Ensure Core directory exists
+                Directory.CreateDirectory(Context.ProjectContext!.TargetPath);
+
+                CreateEntityFile();
+                foreach (DtoType dtoType in Enum.GetValues(typeof(DtoType)))
+                {
+                    string? properties = GetInitialDtoProperties(dtoType);
+                    CreateDtoFile(dtoType, null, properties);
+                }
+                CreateDaoFile();
+                CreateDaoTestFile();
             }
 
-            public override void DoGenerate()
+            if (Context.GenerateService)
             {
-                if (Context.GenerateDbSupport)
-                {
-                    // Ensure Core directory exists
-                    Directory.CreateDirectory(Context.ProjectContext!.TargetPath);
-
-                    CreateEntityFile();
-                    foreach (DtoType dtoType in Enum.GetValues(typeof(DtoType)))
-                    {
-                        string? properties = GetInitialDtoProperties(dtoType);
-                        CreateDtoFile(dtoType, null, properties);
-                    }
-                    CreateDaoFile();
-                    CreateDaoTestFile();
-                }
-
-                if (Context.GenerateService)
-                {
-                    CreateServiceFile();
-                    CreateServiceTestFile();
-                }
+                CreateServiceFile();
+                CreateServiceTestFile();
             }
+        }
 
-            private string? GetInitialDtoProperties(DtoType dtoType)
+        private string? GetInitialDtoProperties(DtoType dtoType)
+        {
+            string? properties;
+            switch (dtoType)
             {
-                string? properties;
-                switch (dtoType)
-                {
-                    case DtoType.Result:
-                        properties = $@"
+                case DtoType.Result:
+                    properties = $@"
         public long {Context.ArtifactName}Id {{ get; set; }}
 ";
-                        break;
-                    case DtoType.Query:
-                        properties = $@"
+                    break;
+                case DtoType.Query:
+                    properties = $@"
         public long? {Context.ArtifactName}Id {{ get; set; }}
 ";
-                        break;
-                    default:
-                        properties = null;
-                        break;
-                }
-                return properties;
+                    break;
+                default:
+                    properties = null;
+                    break;
             }
+            return properties;
+        }
 
-            private void CreateEntityFile()
-            {
-                string entityContent = GetEntityContent();
-                string entityPath = Path.Combine(Context.ProjectContext!.TargetPath, "Entities", $"{Context.ArtifactName}Entity.cs");
-                Directory.CreateDirectory(GetDirectoryName(entityPath));
-                File.WriteAllText(entityPath, entityContent);
-                AnsiConsole.MarkupLine(Helpers.FormatMessage($"Created: {entityPath}", "grey"));
-            }
+        private void CreateEntityFile()
+        {
+            string entityContent = GetEntityContent();
+            string entityPath = Path.Combine(Context.ProjectContext!.TargetPath, "Entities", $"{Context.ArtifactName}Entity.cs");
+            Directory.CreateDirectory(GetDirectoryName(entityPath));
+            File.WriteAllText(entityPath, entityContent);
+            AnsiConsole.MarkupLine(Helpers.FormatMessage($"Created: {entityPath}", "grey"));
+        }
 
-            private void CreateDtoFile(DtoType dtoType, Type? baseClass = null, string? properties = null)
-            {
-                string dtoContent = Helpers.GetDtoContent(Context.ProjectContext!.ProjectName, Context.ArtifactName, Context.PluralizedModuleName, dtoType, baseClass, properties);
-                string dtoPath = Path.Combine(Context.ProjectContext!.TargetPath, "Dtos", $"{Helpers.FormatDtoName(Context.ArtifactName, dtoType)}.cs");
-                Directory.CreateDirectory(GetDirectoryName(dtoPath));
-                File.WriteAllText(dtoPath, dtoContent);
-                AnsiConsole.MarkupLine(Helpers.FormatMessage($"Created: {dtoPath}", "grey"));
-            }
+        private void CreateDtoFile(DtoType dtoType, Type? baseClass = null, string? properties = null)
+        {
+            string dtoContent = Helpers.GetDtoContent(Context.ProjectContext!.ProjectName, Context.ArtifactName, Context.PluralizedModuleName, dtoType, baseClass, properties);
+            string dtoPath = Path.Combine(Context.ProjectContext!.TargetPath, "Dtos", $"{Helpers.FormatDtoName(Context.ArtifactName, dtoType)}.cs");
+            Directory.CreateDirectory(GetDirectoryName(dtoPath));
+            File.WriteAllText(dtoPath, dtoContent);
+            AnsiConsole.MarkupLine(Helpers.FormatMessage($"Created: {dtoPath}", "grey"));
+        }
 
-            private void CreateDaoFile()
-            {
-                string daoContent = GetDaoContent();
-                string daoPath = Path.Combine(Context.ProjectContext!.TargetPath, "Daos", $"{Context.ArtifactName}Dao.cs");
-                Directory.CreateDirectory(GetDirectoryName(daoPath));
-                File.WriteAllText(daoPath, daoContent);
-                AnsiConsole.MarkupLine(Helpers.FormatMessage($"Created: {daoPath}", "grey"));
-            }
+        private void CreateDaoFile()
+        {
+            string daoContent = GetDaoContent();
+            string daoPath = Path.Combine(Context.ProjectContext!.TargetPath, "Daos", $"{Context.ArtifactName}Dao.cs");
+            Directory.CreateDirectory(GetDirectoryName(daoPath));
+            File.WriteAllText(daoPath, daoContent);
+            AnsiConsole.MarkupLine(Helpers.FormatMessage($"Created: {daoPath}", "grey"));
+        }
 
-            private void CreateServiceFile()
-            {
-                string serviceContent = GetServiceContent();
-                string servicePath = Path.Combine(Context.ProjectContext!.TargetPath, "Services", $"{Context.PluralizedModuleName}Service.cs");
-                Directory.CreateDirectory(GetDirectoryName(servicePath));
-                File.WriteAllText(servicePath, serviceContent);
-                AnsiConsole.MarkupLine(Helpers.FormatMessage($"Created: {servicePath}", "grey"));
-            }
+        private void CreateServiceFile()
+        {
+            string serviceContent = GetServiceContent();
+            string servicePath = Path.Combine(Context.ProjectContext!.TargetPath, "Services", $"{Context.PluralizedModuleName}Service.cs");
+            Directory.CreateDirectory(GetDirectoryName(servicePath));
+            File.WriteAllText(servicePath, serviceContent);
+            AnsiConsole.MarkupLine(Helpers.FormatMessage($"Created: {servicePath}", "grey"));
+        }
 
-            private void CreateDaoTestFile()
-            {
-                string testContent = GetDaoTestContent();
-                string testPath = Path.Combine(Context.ProjectContext!.TargetPath, "Tests", "Daos", $"{Context.PluralizedModuleName}DaoTests.cs");
-                Directory.CreateDirectory(GetDirectoryName(testPath));
-                File.WriteAllText(testPath, testContent);
-                AnsiConsole.MarkupLine(Helpers.FormatMessage($"Created: {testPath}", "grey"));
-            }
+        private void CreateDaoTestFile()
+        {
+            string testContent = GetDaoTestContent();
+            string testPath = Path.Combine(Context.ProjectContext!.TargetPath, "Tests", "Daos", $"{Context.PluralizedModuleName}DaoTests.cs");
+            Directory.CreateDirectory(GetDirectoryName(testPath));
+            File.WriteAllText(testPath, testContent);
+            AnsiConsole.MarkupLine(Helpers.FormatMessage($"Created: {testPath}", "grey"));
+        }
 
-            private void CreateServiceTestFile()
-            {
-                string testContent = GetServiceTestContent();
-                string testPath = Path.Combine(Context.ProjectContext!.TargetPath, "Tests", "Services", $"{Context.PluralizedModuleName}ServiceTests.cs");
-                Directory.CreateDirectory(GetDirectoryName(testPath));
-                File.WriteAllText(testPath, testContent);
-                AnsiConsole.MarkupLine(Helpers.FormatMessage($"Created: {testPath}", "grey"));
-            }
+        private void CreateServiceTestFile()
+        {
+            string testContent = GetServiceTestContent();
+            string testPath = Path.Combine(Context.ProjectContext!.TargetPath, "Tests", "Services", $"{Context.PluralizedModuleName}ServiceTests.cs");
+            Directory.CreateDirectory(GetDirectoryName(testPath));
+            File.WriteAllText(testPath, testContent);
+            AnsiConsole.MarkupLine(Helpers.FormatMessage($"Created: {testPath}", "grey"));
+        }
 
-            private string GetEntityContent()
-            {
-                return $@"using NestNet.Infra.BaseClasses;
+        private string GetEntityContent()
+        {
+            return $@"using NestNet.Infra.BaseClasses;
 using NestNet.Infra.Attributes;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
@@ -178,11 +176,11 @@ namespace {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModul
         public string? MyVirtualField {{ get; set; }}
     }}
 }}";
-            }
+        }
 
-            private string GetDaoContent()
-            {
-                return $@"#pragma warning disable IDE0290 // Use primary constructor
+        private string GetDaoContent()
+        {
+            return $@"#pragma warning disable IDE0290 // Use primary constructor
 using {Context.ProjectContext!.ProjectName}.Data;
 using NestNet.Infra.BaseClasses;
 using NestNet.Infra.Attributes;
@@ -220,11 +218,11 @@ namespace {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModul
 }}
 
 #pragma warning restore IDE0290 // Use primary constructor";
-            }
+        }
 
-            private string GetServiceContent()
-            {
-                return $@"#pragma warning disable IDE0290 // Use primary constructor
+        private string GetServiceContent()
+        {
+            return $@"#pragma warning disable IDE0290 // Use primary constructor
 using NestNet.Infra.BaseClasses;
 using NestNet.Infra.Attributes;
 using {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModuleName}.Dtos;
@@ -262,11 +260,11 @@ namespace {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModul
 }}
 
 #pragma warning restore IDE0290 // Use primary constructor";
-            }
+        }
 
-            private string GetDaoTestContent()
-            {
-                return $@"using Xunit;
+        private string GetDaoTestContent()
+        {
+            return $@"using Xunit;
 using NestNet.Infra.Query;
 using NestNet.Infra.Helpers;
 using NestNet.Infra.Paginatation;
@@ -595,11 +593,11 @@ namespace {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModul
         }}
     }}
 }}";
-            }
+        }
 
-            private string GetServiceTestContent()
-            {
-                return $@"using NSubstitute;
+        private string GetServiceTestContent()
+        {
+            return $@"using NSubstitute;
 using Xunit;
 using NestNet.Infra.Query;
 using NestNet.Infra.Paginatation;
@@ -1123,7 +1121,6 @@ namespace {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModul
         }}
     }}
 }}";
-            }
         }
     }
 }

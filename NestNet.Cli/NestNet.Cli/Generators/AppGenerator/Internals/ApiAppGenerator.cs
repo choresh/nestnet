@@ -2,7 +2,7 @@
 
 namespace NestNet.Cli.Generators.AppGenerator
 {
-    public class ApiAppGenerator : AppGeneratorBase
+    internal class ApiAppGenerator : AppGeneratorBase
     {
         public ApiAppGenerator()
             : base(AppType.Api)

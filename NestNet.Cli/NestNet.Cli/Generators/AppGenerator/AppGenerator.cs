@@ -3,7 +3,7 @@ using NestNet.Cli.Infra;
 
 namespace NestNet.Cli.Generators.AppGenerator
 {
-    internal static partial class AppGenerator
+    internal static class AppGenerator
     {
         public class InputParams
         {

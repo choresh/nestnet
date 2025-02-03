@@ -1,50 +1,49 @@
 ﻿using NestNet.Cli.Generators.Common;
+using NestNet.Cli.Generators.ResourceGenerator.Internals;
 using NestNet.Cli.Infra;
 using Spectre.Console;
 
 namespace NestNet.Cli.Generators.ResourceGenerator
 {
-    internal static partial class ResourceGenerator
+    internal class CoreResourceGenerator : MultiProjectsGeneratorBase<ResourceGenerationContext>
     {
-        private class CoreResourceGenerator : MultiProjectsGeneratorBase<ResourceGenerationContext>
+        public CoreResourceGenerator()
+            : base(ProjectType.Core)
         {
-            public CoreResourceGenerator()
-                : base(ProjectType.Core)
-            {
-            }
+        }
 
-            public override void DoGenerate()
-            {
-                CreateSampleDtoFile(SampleDtoType.Input);
-                CreateSampleDtoFile(SampleDtoType.Output);
-                CreateServiceFile();
-                CreateServiceTestFile();
-            }
+        public override void DoGenerate()
+        {
+            CreateSampleDtoFile(SampleDtoType.Input);
+            CreateSampleDtoFile(SampleDtoType.Output);
+            CreateServiceFile();
+            CreateServiceTestFile();
+        }
 
-            private void CreateSampleDtoFile(SampleDtoType sampleDtoType)
+        private void CreateSampleDtoFile(SampleDtoType sampleDtoType)
+        {
+            string dtoName;
+            switch (sampleDtoType)
             {
-                string dtoName;
-                switch (sampleDtoType)
-                {
-                    case SampleDtoType.Output:
-                        dtoName = Context.SampleOutputDtoName;
-                        break;
-                    case SampleDtoType.Input:
-                        dtoName = Context.SampleInputDtoName;
-                        break;
-                    default:
-                        throw new Exception("Invalid  SampleDtoType");
-                }
-                string dtoContent = GetSampleDtoContent(Context.ProjectContext!.ProjectName, Context.ArtifactName, dtoName);
-                string dtoPath = Path.Combine(Context.ProjectContext!.TargetPath, "Dtos", $"{dtoName}.cs");
-                Directory.CreateDirectory(GetDirectoryName(dtoPath));
-                File.WriteAllText(dtoPath, dtoContent);
-                AnsiConsole.MarkupLine(Helpers.FormatMessage($"Created: {dtoPath}", "grey"));
+                case SampleDtoType.Output:
+                    dtoName = Context.SampleOutputDtoName;
+                    break;
+                case SampleDtoType.Input:
+                    dtoName = Context.SampleInputDtoName;
+                    break;
+                default:
+                    throw new Exception("Invalid  SampleDtoType");
             }
+            string dtoContent = GetSampleDtoContent(Context.ProjectContext!.ProjectName, Context.ArtifactName, dtoName);
+            string dtoPath = Path.Combine(Context.ProjectContext!.TargetPath, "Dtos", $"{dtoName}.cs");
+            Directory.CreateDirectory(GetDirectoryName(dtoPath));
+            File.WriteAllText(dtoPath, dtoContent);
+            AnsiConsole.MarkupLine(Helpers.FormatMessage($"Created: {dtoPath}", "grey"));
+        }
 
-            private string GetSampleDtoContent(string projectName, string resourceName, string dtoName)
-            {
-                return $@"namespace {projectName}.Resources.{resourceName}.Dtos
+        private string GetSampleDtoContent(string projectName, string resourceName, string dtoName)
+        {
+            return $@"namespace {projectName}.Resources.{resourceName}.Dtos
 {{
     /// <summary>
     /// This is a sample DTO class.
@@ -54,29 +53,29 @@ namespace NestNet.Cli.Generators.ResourceGenerator
         // Add here your required properties.
     }}
 }}";
-            }
+        }
 
-            private void CreateServiceFile()
-            {
-                string serviceContent = GetServiceContent();
-                string servicePath = Path.Combine(Context.ProjectContext!.TargetPath, "Services", $"{Context.ArtifactName}Service.cs");
-                Directory.CreateDirectory(GetDirectoryName(servicePath));
-                File.WriteAllText(servicePath, serviceContent);
-                AnsiConsole.MarkupLine(Helpers.FormatMessage($"Created: {servicePath}", "grey"));
-            }
+        private void CreateServiceFile()
+        {
+            string serviceContent = GetServiceContent();
+            string servicePath = Path.Combine(Context.ProjectContext!.TargetPath, "Services", $"{Context.ArtifactName}Service.cs");
+            Directory.CreateDirectory(GetDirectoryName(servicePath));
+            File.WriteAllText(servicePath, serviceContent);
+            AnsiConsole.MarkupLine(Helpers.FormatMessage($"Created: {servicePath}", "grey"));
+        }
 
-            private void CreateServiceTestFile()
-            {
-                string testContent = GetServiceTestContent();
-                string testPath = Path.Combine(Context.ProjectContext!.TargetPath, "Tests", "Services", $"{Context.ArtifactName}ServiceTests.cs");
-                Directory.CreateDirectory(GetDirectoryName(testPath));
-                File.WriteAllText(testPath, testContent);
-                AnsiConsole.MarkupLine(Helpers.FormatMessage($"Created: {testPath}", "grey"));
-            }
+        private void CreateServiceTestFile()
+        {
+            string testContent = GetServiceTestContent();
+            string testPath = Path.Combine(Context.ProjectContext!.TargetPath, "Tests", "Services", $"{Context.ArtifactName}ServiceTests.cs");
+            Directory.CreateDirectory(GetDirectoryName(testPath));
+            File.WriteAllText(testPath, testContent);
+            AnsiConsole.MarkupLine(Helpers.FormatMessage($"Created: {testPath}", "grey"));
+        }
 
-            private string GetServiceContent()
-            {
-                return $@"#pragma warning disable IDE0290 // Use primary constructor
+        private string GetServiceContent()
+        {
+            return $@"#pragma warning disable IDE0290 // Use primary constructor
 using {Context.ProjectContext!.ProjectName}.Resources.{Context.ArtifactName}.Dtos;
 using NestNet.Infra.Attributes;
 
@@ -110,11 +109,11 @@ namespace {Context.ProjectContext!.ProjectName}.Resources.{Context.ArtifactName}
 }}
 
 #pragma warning restore IDE0290 // Use primary constructor";
-            }
+        }
 
-            private string GetServiceTestContent()
-            {
-                return $@"using NSubstitute;
+        private string GetServiceTestContent()
+        {
+            return $@"using NSubstitute;
 using Xunit;
 using AutoFixture;
 using AutoFixture.AutoNSubstitute;
@@ -154,7 +153,6 @@ namespace {Context.ProjectContext!.ProjectName}.Resources.{Context.ArtifactName}
         }}
     }}
 }}";
-            }
         }
     }
 }

@@ -2,7 +2,7 @@
 
 namespace NestNet.Cli.Generators.AppGenerator
 {
-    public class WorkerAppGenerator : AppGeneratorBase
+    internal class WorkerAppGenerator : AppGeneratorBase
     {
         public WorkerAppGenerator()
            : base(AppType.Worker)
