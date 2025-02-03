@@ -77,7 +77,7 @@ builder.Services.AddSwaggerGen(c =>
 }});
 
 // Helper function to construct DB connection string from environment variables
-{GetConnectionStringMethod(context.DbType)}
+{GetConnectionStringMethod(context.DbType, "")}
 
 var connectionString = CreateConnectionString(args);
 

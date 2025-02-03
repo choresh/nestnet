@@ -115,46 +115,46 @@ namespace NestNet.Cli.Generators.AppGenerator
         }
 
 
-        protected static string GetConnectionStringMethod(DbType dbType)
+        protected static string GetConnectionStringMethod(DbType dbType, string indentation)
         {
             switch (dbType)
             {
                 case DbType.MsSql:
-                    return GetMsSqlConnectionStringMethod();
+                    return GetMsSqlConnectionStringMethod(indentation);
                 case DbType.Postgres:
-                    return GetPostgresConnectionStringMethod();
+                    return GetPostgresConnectionStringMethod(indentation);
                 default:
                     throw new ArgumentException($"DB type '{dbType}' not supported");
             }
         }
 
-        protected static string GetMsSqlConnectionStringMethod()
+        protected static string GetMsSqlConnectionStringMethod(string indentation)
         {
-            return @"static string CreateConnectionString(string[] args)
-{
-    var server = ConfigHelper.GetConfigParam(args, ""MSSQL_SERVER"");
-    var dbName = ConfigHelper.GetConfigParam(args, ""MSSQL_DB_NAME"");
-    var user = ConfigHelper.GetConfigParam(args, ""MSSQL_USER"");
-    var password = ConfigHelper.GetConfigParam(args, ""MSSQL_PASSWORD"");
-    var trustServerCertificate = ConfigHelper.GetConfigParam(args, ""MSSQL_TRUST_SERVER_CERTIFICATE"", ""false"");
-    var trustedConnection = ConfigHelper.GetConfigParam(args, ""MSSQL_TRUSTED_CONNECTION"", ""false"");
-    var multipleActiveResultSets = ConfigHelper.GetConfigParam(args, ""MSSQL_MULTIPLE_ACTIVE_RESULT_SETS"", ""false"");
+            return $@"static string CreateConnectionString(string[] args)
+{indentation}{{
+{indentation + "\t"}var server = ConfigHelper.GetConfigParam(args, ""MSSQL_SERVER"");
+{indentation + "\t"}var dbName = ConfigHelper.GetConfigParam(args, ""MSSQL_DB_NAME"");
+{indentation + "\t"}var user = ConfigHelper.GetConfigParam(args, ""MSSQL_USER"");
+{indentation + "\t"}var password = ConfigHelper.GetConfigParam(args, ""MSSQL_PASSWORD"");
+{indentation + "\t"}var trustServerCertificate = ConfigHelper.GetConfigParam(args, ""MSSQL_TRUST_SERVER_CERTIFICATE"", ""false"");
+{indentation + "\t"}var trustedConnection = ConfigHelper.GetConfigParam(args, ""MSSQL_TRUSTED_CONNECTION"", ""false"");
+{indentation + "\t"}var multipleActiveResultSets = ConfigHelper.GetConfigParam(args, ""MSSQL_MULTIPLE_ACTIVE_RESULT_SETS"", ""false"");
 
-    return $""Server={server}; Database={dbName}; User Id={user}; Password={password}; TrustServerCertificate={trustServerCertificate}; Trusted_Connection={trustedConnection}; MultipleActiveResultSets={multipleActiveResultSets}"";
-}";
+{indentation + "\t"}return $""Server={{server}}; Database={{dbName}}; User Id={{user}}; Password={{password}}; TrustServerCertificate={{trustServerCertificate}}; Trusted_Connection={{trustedConnection}}; MultipleActiveResultSets={{multipleActiveResultSets}}"";
+{indentation}}}";
         }
 
-        private static string GetPostgresConnectionStringMethod()
+        private static string GetPostgresConnectionStringMethod(string indentation)
         {
-            return @"static string CreateConnectionString(string[] args)
-{
-    var server = ConfigHelper.GetConfigParam(args, ""POSTGRES_SERVER"");
-    var dbName = ConfigHelper.GetConfigParam(args, ""POSTGRES_DB_NAME"");
-    var user = ConfigHelper.GetConfigParam(args, ""POSTGRES_USER"");
-    var password = ConfigHelper.GetConfigParam(args, ""POSTGRES_PASSWORD"");
+            return $@"static string CreateConnectionString(string[] args)
+{indentation}{{
+{indentation + "\t"}var server = ConfigHelper.GetConfigParam(args, ""POSTGRES_SERVER"");
+{indentation + "\t"}var dbName = ConfigHelper.GetConfigParam(args, ""POSTGRES_DB_NAME"");
+{indentation + "\t"}var user = ConfigHelper.GetConfigParam(args, ""POSTGRES_USER"");
+{indentation + "\t"}var password = ConfigHelper.GetConfigParam(args, ""POSTGRES_PASSWORD"");
 
-    return $""Host={server}; Database={dbName}; Username={user}; Password={password}"";
-}";
+{indentation + "\t"}return $""Host={{server}}; Database={{dbName}}; Username={{user}}; Password={{password}}"";
+{indentation}}}";
         }
 
         protected static string GetDbContextOptionsCode(DbType dbType, string connectionStringCode)

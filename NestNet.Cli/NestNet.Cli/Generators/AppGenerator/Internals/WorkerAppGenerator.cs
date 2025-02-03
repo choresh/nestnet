@@ -53,12 +53,13 @@ namespace NestNet.Cli.Generators.AppGenerator
 using Microsoft.EntityFrameworkCore;
 using NestNet.Infra.Helpers;
 using System.Reflection;
+using {context.CurrProjectName};
 
 var builder = Host.CreateDefaultBuilder(args)
     .ConfigureServices((hostContext, services) =>
     {{
         // Helper function to construct DB connection string from environment variables
-        {GetConnectionStringMethod(context.DbType)}
+        {GetConnectionStringMethod(context.DbType, "\t\t")}
 
         var connectionString = CreateConnectionString(args);
 

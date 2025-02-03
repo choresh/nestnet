@@ -1,10 +1,5 @@
-﻿using System.Diagnostics;
-using System.Xml.Linq;
-using Spectre.Console;
+﻿using Spectre.Console;
 using NestNet.Cli.Infra;
-using System.Reflection;
-using DbType = NestNet.Infra.Enums.DbType;
-using NestNet.Cli.Generators.Common;
 
 namespace NestNet.Cli.Generators.AppGenerator
 {

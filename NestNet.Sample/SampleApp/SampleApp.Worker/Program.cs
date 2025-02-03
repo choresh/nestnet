@@ -2,21 +2,21 @@ using SampleApp.Core.Data;
 using Microsoft.EntityFrameworkCore;
 using NestNet.Infra.Helpers;
 using System.Reflection;
-using SampleApp.Worker; // ZZZ
+using SampleApp.Worker;
 
 var builder = Host.CreateDefaultBuilder(args)
     .ConfigureServices((hostContext, services) =>
     {
         // Helper function to construct DB connection string from environment variables
         static string CreateConnectionString(string[] args)
-        {
-            var server = ConfigHelper.GetConfigParam(args, "POSTGRES_SERVER");
-            var dbName = ConfigHelper.GetConfigParam(args, "POSTGRES_DB_NAME");
-            var user = ConfigHelper.GetConfigParam(args, "POSTGRES_USER");
-            var password = ConfigHelper.GetConfigParam(args, "POSTGRES_PASSWORD");
+		{
+			var server = ConfigHelper.GetConfigParam(args, "POSTGRES_SERVER");
+			var dbName = ConfigHelper.GetConfigParam(args, "POSTGRES_DB_NAME");
+			var user = ConfigHelper.GetConfigParam(args, "POSTGRES_USER");
+			var password = ConfigHelper.GetConfigParam(args, "POSTGRES_PASSWORD");
 
-            return $"Host={server}; Database={dbName}; Username={user}; Password={password}";
-        }
+			return $"Host={server}; Database={dbName}; Username={user}; Password={password}";
+		}
 
         var connectionString = CreateConnectionString(args);
 
