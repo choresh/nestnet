@@ -27,6 +27,8 @@ namespace NestNet.Cli.Generators.AppGenerator
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include=""MassTransit"" Version=""8.1.3"" />
+        <PackageReference Include=""MassTransit.RabbitMQ"" Version=""8.1.3"" />
         <PackageReference Include=""Microsoft.EntityFrameworkCore.Design"" Version=""*"">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -54,6 +56,7 @@ using Microsoft.EntityFrameworkCore;
 using NestNet.Infra.Helpers;
 using System.Reflection;
 using {context.CurrProjectName};
+using MassTransit;
 
 var builder = Host.CreateDefaultBuilder(args)
     .ConfigureServices((hostContext, services) =>
@@ -67,6 +70,30 @@ var builder = Host.CreateDefaultBuilder(args)
         services.AddDbContext<AppDbContext>(options =>
         {{
             {GetDbContextOptionsCode(context.DbType, "connectionString")};
+        }});
+
+        // Configure MassTransit with RabbitMQ
+        services.AddMassTransit(x =>
+        {{
+            // Add all consumers from both assemblies
+            x.AddConsumers(Assembly.GetExecutingAssembly());
+            x.AddConsumers(Assembly.Load(""{context.BaseProjectName}.Core""));
+
+            x.UsingRabbitMq((context, cfg) =>
+            {{
+                var host = ConfigHelper.GetConfigParam(args, ""RABBITMQ_HOST"", ""localhost"");
+                var virtualHost = ConfigHelper.GetConfigParam(args, ""RABBITMQ_VHOST"", ""/"");
+                var username = ConfigHelper.GetConfigParam(args, ""RABBITMQ_USERNAME"", ""guest"");
+                var password = ConfigHelper.GetConfigParam(args, ""RABBITMQ_PASSWORD"", ""guest"");
+
+                cfg.Host(host, virtualHost, h => 
+                {{
+                    h.Username(username);
+                    h.Password(password);
+                }});
+
+                cfg.ConfigureEndpoints(context);
+            }});
         }});
 
         // Configure dependency injection for classes with [Injectable] attribute.
@@ -98,15 +125,19 @@ await host.RunAsync();";
 
         private static void GenerateWorkerService(AppGenerationContext context)
         {
-            var workerContent = $@"namespace {context.CurrProjectName};
+            var workerContent = $@"using MassTransit;
+
+namespace {context.CurrProjectName};
 
 public class Worker : BackgroundService
 {{
     private readonly ILogger<Worker> _logger;
+    private readonly IBus _bus;
 
-    public Worker(ILogger<Worker> logger)
+    public Worker(ILogger<Worker> logger, IBus bus)
     {{
         _logger = logger;
+        _bus = bus;
     }}
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -114,6 +145,10 @@ public class Worker : BackgroundService
         while (!stoppingToken.IsCancellationRequested)
         {{
             _logger.LogInformation(""Worker running at: {{time}}"", DateTimeOffset.Now);
+            
+            // Example of how to publish a message:
+            // await _bus.Publish(new YourMessage {{ Property = ""Value"" }}, stoppingToken);
+            
             await Task.Delay(1000, stoppingToken);
         }}
     }}
