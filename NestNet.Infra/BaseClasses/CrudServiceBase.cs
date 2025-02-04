@@ -5,7 +5,6 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Reflection;
 using NestNet.Infra.Helpers;
 using NestNet.Infra.Paginatation;
-using Microsoft.EntityFrameworkCore;
 using NestNet.Infra.Attributes;
 
 namespace NestNet.Infra.BaseClasses
