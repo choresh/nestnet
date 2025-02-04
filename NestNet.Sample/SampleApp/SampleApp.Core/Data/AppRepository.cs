@@ -10,7 +10,7 @@ namespace SampleApp.Core.Data
     }
 
     [Injectable(LifetimeType.Scoped)]
-    public class AppRepository : AppRepositoryBase
+    public class AppRepository : AppRepositoryBase, IAppRepository
     {
         public AppRepository(AppDbContext context)
             : base(context)

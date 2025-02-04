@@ -189,9 +189,9 @@ namespace {context.CurrProjectName}.Data
     }}
 
     [Injectable(LifetimeType.Scoped)]
-    public class AppRepository : AppRepositoryBase
+    public class AppRepository : AppRepositoryBase, IAppRepository
     {{
-        public AppRepository(DbContext context)
+        public AppRepository(AppDbContext context)
             : base(context)
         {{
         }}
