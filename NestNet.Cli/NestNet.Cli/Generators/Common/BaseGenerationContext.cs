@@ -5,5 +5,7 @@
         public ProjectContext? ProjectContext { get; set; }
 
         public required string ArtifactName { get; set; }
+
+        public string? PluralizedArtifactName { get; set; }
     }
 }

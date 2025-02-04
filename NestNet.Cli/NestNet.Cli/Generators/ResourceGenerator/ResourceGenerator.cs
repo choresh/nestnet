@@ -73,6 +73,7 @@ namespace NestNet.Cli.Generators.ResourceGenerator
                 GenerateController = true, // ZZZ
                 GenerateConsumer = true, // ZZZ
                 ArtifactName = inputParams.ResourceName,
+                PluralizedArtifactName = null,
                 ParamName = paramName,
                 KebabCaseResourceName = kebabCaseResourceName,
                 SampleInputDtoName = "SampleInputDto",

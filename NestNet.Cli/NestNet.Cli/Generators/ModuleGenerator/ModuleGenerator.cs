@@ -98,10 +98,13 @@ namespace NestNet.Cli.Generators.ModuleGenerator
                 moduleName = inputParams.ModuleName;
             }
 
+            var pluralizedModuleName = inputParams?.PluralizedModuleName ?? moduleName + "s";
+
             return new ModuleGenerationContext
             {
                 ArtifactName = moduleName,
-                PluralizedModuleName = inputParams?.PluralizedModuleName ?? moduleName + "s",
+                PluralizedArtifactName = pluralizedModuleName,
+                PluralizedModuleName = pluralizedModuleName,
                 ParamName = StringHelper.ToCamelCase(moduleName),
                 PluralizedParamName = StringHelper.ToCamelCase(moduleName + "s"),
                 KebabCasePluralizedModuleName = Helpers.ToKebabCase(moduleName + "s"),
@@ -148,6 +151,7 @@ namespace NestNet.Cli.Generators.ModuleGenerator
             return new ModuleGenerationContext
             {
                 ArtifactName = moduleName,
+                PluralizedArtifactName = pluralizedModuleName,
                 PluralizedModuleName = pluralizedModuleName,
                 ParamName = paramName,
                 PluralizedParamName = pluralizedParamName,

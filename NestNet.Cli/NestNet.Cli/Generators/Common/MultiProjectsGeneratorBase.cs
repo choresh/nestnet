@@ -24,7 +24,7 @@ namespace NestNet.Cli.Generators.Common
             {
                 ProjectDir = projectDir,
                 ProjectName = projectName,
-                TargetPath = Path.Combine(projectDir, parentFolderName, context.ArtifactName)
+                TargetPath = Path.Combine(projectDir, parentFolderName, context.PluralizedArtifactName ?? context.ArtifactName)
             };
 
             if (!Helpers.CheckTarDir(projectContext.TargetPath))
