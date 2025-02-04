@@ -1,6 +1,7 @@
 #pragma warning disable IDE0290 // Use primary constructor
 using NestNet.Infra.BaseClasses;
 using NestNet.Infra.Attributes;
+using NestNet.Infra.Interfaces;
 
 namespace SampleApp.Core.Data
 {
