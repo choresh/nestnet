@@ -163,6 +163,7 @@ namespace {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModul
             return $@"#pragma warning disable IDE0290 // Use primary constructor
 using NestNet.Infra.BaseClasses;
 using NestNet.Infra.Attributes;
+using NestNet.Infra.Interfaces;
 using {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModuleName}.Dtos;
 using {Context.ProjectContext!.ProjectName}.Modules.{Context.PluralizedModuleName}.Entities;
 using {Context.ProjectContext!.ProjectName}.Data;

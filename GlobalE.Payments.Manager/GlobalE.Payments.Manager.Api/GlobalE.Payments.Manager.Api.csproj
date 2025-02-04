@@ -31,8 +31,8 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\..\NestNet.Infra\NestNet.Infra.csproj" />
-        <ProjectReference Include="..\SampleApp.Core\SampleApp.Core.csproj" />
+        <ProjectReference Include="..\..\NestNet.Infra\NestNet.Infra.csproj" />
+        <ProjectReference Include="..\GlobalE.Payments.Manager.Core\GlobalE.Payments.Manager.Core.csproj" />
     </ItemGroup>
 
 </Project>

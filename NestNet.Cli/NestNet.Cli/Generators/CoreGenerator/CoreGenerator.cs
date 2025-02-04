@@ -180,6 +180,7 @@ namespace {context.CurrProjectName}.Data
             var appRepositoryContent = $@"#pragma warning disable IDE0290 // Use primary constructor
 using NestNet.Infra.BaseClasses;
 using NestNet.Infra.Attributes;
+using NestNet.Infra.Interfaces;
 
 namespace {context.CurrProjectName}.Data
 {{

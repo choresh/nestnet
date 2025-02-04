@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Worker">
 
     <PropertyGroup>
         <TargetFramework>net8.0</TargetFramework>
@@ -7,6 +7,8 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="MassTransit" Version="8.1.3" />
+        <PackageReference Include="MassTransit.RabbitMQ" Version="8.1.3" />
         <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="*">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -15,7 +17,7 @@
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-        <PackageReference Include="Swashbuckle.AspNetCore" Version="*" />
+        <PackageReference Include="Microsoft.Extensions.Hosting" Version="*" />
 
         <PackageReference Include="Xunit" Version="*" />
         <PackageReference Include="Microsoft.TestPlatform.TestHost" Version="*" />
@@ -31,8 +33,8 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\..\NestNet.Infra\NestNet.Infra.csproj" />
-        <ProjectReference Include="..\SampleApp.Core\SampleApp.Core.csproj" />
+        <ProjectReference Include="..\..\NestNet.Infra\NestNet.Infra.csproj" />
+        <ProjectReference Include="..\GlobalE.Payments.Manager.Core\GlobalE.Payments.Manager.Core.csproj" />
     </ItemGroup>
 
 </Project>

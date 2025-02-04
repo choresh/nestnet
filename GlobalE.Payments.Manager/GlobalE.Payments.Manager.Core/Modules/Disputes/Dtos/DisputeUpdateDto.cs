@@ -1,11 +1,11 @@
-namespace SampleApp.Core.Modules.MyModules.Dtos
+namespace GlobalE.Payments.Manager.Core.Modules.Disputes.Dtos
 {
     /// <summary>
     /// * This is an auto-generated DTO class.
     /// * Do not modify this file directly as it will be regenerated.
-    /// * To modify the properties, please update properties/attributes at the corresponding entity class ('MyModuleEntity').
+    /// * To modify the properties, please update properties/attributes at the corresponding entity class ('DisputeEntity').
     /// </summary>
-    public class MyModuleUpdateDto
+    public class DisputeUpdateDto
     {
 		public String? Name { get; set; }
 		public Int64? Age { get; set; }

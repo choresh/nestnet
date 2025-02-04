@@ -2,21 +2,21 @@
 using NestNet.Infra.BaseClasses;
 using NestNet.Infra.Attributes;
 using NestNet.Infra.Interfaces;
-using SampleApp.Core.Modules.MyModules.Dtos;
-using SampleApp.Core.Modules.MyModules.Entities;
-using SampleApp.Core.Data;
+using GlobalE.Payments.Manager.Core.Modules.Disputes.Dtos;
+using GlobalE.Payments.Manager.Core.Modules.Disputes.Entities;
+using GlobalE.Payments.Manager.Core.Data;
 
-namespace SampleApp.Core.Modules.MyModules.Services
+namespace GlobalE.Payments.Manager.Core.Modules.Disputes.Services
 {
-    public interface IMyModulesService: ICrudService<MyModuleEntity, MyModuleCreateDto, MyModuleUpdateDto, MyModuleResultDto, MyModuleQueryDto>
+    public interface IDisputesService: ICrudService<DisputeEntity, DisputeCreateDto, DisputeUpdateDto, DisputeResultDto, DisputeQueryDto>
     {
         // If you add methods to derived class - expose them here.
     }
 
     [Injectable(LifetimeType.Scoped)]
-    public class MyModulesService : CrudServiceBase<MyModuleEntity, MyModuleCreateDto, MyModuleUpdateDto, MyModuleResultDto, MyModuleQueryDto>, IMyModulesService
+    public class DisputesService : CrudServiceBase<DisputeEntity, DisputeCreateDto, DisputeUpdateDto, DisputeResultDto, DisputeQueryDto>, IDisputesService
     {
-        public MyModulesService(IAppRepository appRepository)
+        public DisputesService(IAppRepository appRepository)
             : base(appRepository)
         {
         }
@@ -26,7 +26,7 @@ namespace SampleApp.Core.Modules.MyModules.Services
         // 2) You can override here base class methods if needed:
         //    * Add methods with the same name and signature as in the base class.
         //    * For example:
-        //      public override async Task<IEnumerable<MyModuleResultDto>> GetAll()
+        //      public override async Task<IEnumerable<DisputeResultDto>> GetAll()
         //      {
         //          // Set your custom implementation here.
         //      }

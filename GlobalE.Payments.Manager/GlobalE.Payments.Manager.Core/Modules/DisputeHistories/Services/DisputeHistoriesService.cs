@@ -2,21 +2,21 @@
 using NestNet.Infra.BaseClasses;
 using NestNet.Infra.Attributes;
 using NestNet.Infra.Interfaces;
-using SampleApp.Core.Modules.MyModules.Dtos;
-using SampleApp.Core.Modules.MyModules.Entities;
-using SampleApp.Core.Data;
+using GlobalE.Payments.Manager.Core.Modules.DisputeHistories.Dtos;
+using GlobalE.Payments.Manager.Core.Modules.DisputeHistories.Entities;
+using GlobalE.Payments.Manager.Core.Data;
 
-namespace SampleApp.Core.Modules.MyModules.Services
+namespace GlobalE.Payments.Manager.Core.Modules.DisputeHistories.Services
 {
-    public interface IMyModulesService: ICrudService<MyModuleEntity, MyModuleCreateDto, MyModuleUpdateDto, MyModuleResultDto, MyModuleQueryDto>
+    public interface IDisputeHistoriesService: ICrudService<DisputeHistoryEntity, DisputeHistoryCreateDto, DisputeHistoryUpdateDto, DisputeHistoryResultDto, DisputeHistoryQueryDto>
     {
         // If you add methods to derived class - expose them here.
     }
 
     [Injectable(LifetimeType.Scoped)]
-    public class MyModulesService : CrudServiceBase<MyModuleEntity, MyModuleCreateDto, MyModuleUpdateDto, MyModuleResultDto, MyModuleQueryDto>, IMyModulesService
+    public class DisputeHistoriesService : CrudServiceBase<DisputeHistoryEntity, DisputeHistoryCreateDto, DisputeHistoryUpdateDto, DisputeHistoryResultDto, DisputeHistoryQueryDto>, IDisputeHistoriesService
     {
-        public MyModulesService(IAppRepository appRepository)
+        public DisputeHistoriesService(IAppRepository appRepository)
             : base(appRepository)
         {
         }
@@ -26,7 +26,7 @@ namespace SampleApp.Core.Modules.MyModules.Services
         // 2) You can override here base class methods if needed:
         //    * Add methods with the same name and signature as in the base class.
         //    * For example:
-        //      public override async Task<IEnumerable<MyModuleResultDto>> GetAll()
+        //      public override async Task<IEnumerable<DisputeHistoryResultDto>> GetAll()
         //      {
         //          // Set your custom implementation here.
         //      }
