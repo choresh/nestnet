@@ -8,6 +8,8 @@ namespace NestNet.Cli.Generators.DtosGenerator
 {
     internal static class DtosGenerator
     {
+        private const string ENTITY_CLASS_NAME_SUFFIX = "Entity";
+
         public class InputParams
         {
             /// <summary>
@@ -225,7 +227,12 @@ namespace NestNet.Cli.Generators.DtosGenerator
             Type? baseClass = null
             )
         {
-            var dtoName = Helpers.FormatDtoName(entity.Name, dtoType);
+            if (!entity.Name.EndsWith(ENTITY_CLASS_NAME_SUFFIX))
+            {
+                throw new ArgumentException($"Entity type name must end with '{ENTITY_CLASS_NAME_SUFFIX}' suffix. Invalid name: {entity.Name}");
+            }
+            string baseName = entity.Name.Substring(0, entity.Name.Length - ENTITY_CLASS_NAME_SUFFIX.Length);
+            var dtoName = Helpers.FormatDtoName(baseName, dtoType);
             var dtoBody = ConvertEntityToDto(entity, dtoName, dtoType);
             var dtoFileContent = Helpers.GetDtoContent(context.ProjectName, entity.Name, pluralizedModuleName, dtoType, baseClass, dtoBody);
             var dtoFile = Path.Combine(targetPath, $"{dtoName}.cs");
