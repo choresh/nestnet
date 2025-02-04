@@ -1,14 +1,9 @@
-﻿using NestNet.Infra.Paginatation;
+﻿using NestNet.Infra.BaseClasses;
+using NestNet.Infra.Paginatation;
 using NestNet.Infra.Query;
 
-namespace NestNet.Infra.BaseClasses
+namespace NestNet.Infra.Interfaces
 {
-    public class InternalCreateResult<TResultDto>
-    {
-        public required TResultDto ResultDto { get; set; }
-        public long Id { get; set; }
-    }
-
     public interface ICrudService<TEntity, TCreateDto, TUpdateDto, TResultDto, TQueryDto> where TQueryDto : class
     {
         Task<InternalCreateResult<TResultDto>> Create(TCreateDto createDto);

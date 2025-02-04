@@ -1,7 +1,7 @@
 ﻿using NestNet.Infra.Paginatation;
 using NestNet.Infra.Query;
 
-namespace NestNet.Infra.BaseClasses
+namespace NestNet.Infra.Interfaces
 {
     public interface IAppRepositoryBase
     {

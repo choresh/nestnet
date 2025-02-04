@@ -1,4 +1,6 @@
-﻿namespace NestNet.Infra.BaseClasses
+﻿using NestNet.Infra.Interfaces;
+
+namespace NestNet.Infra.BaseClasses
 {
     public abstract class EntityBase : IEntity
     {

@@ -1,4 +1,4 @@
-﻿namespace NestNet.Infra.BaseClasses
+﻿namespace NestNet.Infra.Interfaces
 {
     public interface IEntity
     {

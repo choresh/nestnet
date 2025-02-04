@@ -6,6 +6,7 @@ using System.Reflection;
 using NestNet.Infra.Helpers;
 using NestNet.Infra.Paginatation;
 using NestNet.Infra.Attributes;
+using NestNet.Infra.Interfaces;
 
 namespace NestNet.Infra.BaseClasses
 {

@@ -4,6 +4,7 @@ using NestNet.Infra.Attributes;
 using SampleApp.Core.Modules.MyModules.Dtos;
 using SampleApp.Core.Modules.MyModules.Entities;
 using SampleApp.Core.Data;
+using NestNet.Infra.Interfaces;
 
 namespace SampleApp.Core.Modules.MyModules.Services
 {
