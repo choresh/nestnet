@@ -234,7 +234,7 @@ namespace NestNet.Cli.Generators.DtosGenerator
             string baseName = entity.Name.Substring(0, entity.Name.Length - ENTITY_CLASS_NAME_SUFFIX.Length);
             var dtoName = Helpers.FormatDtoName(baseName, dtoType);
             var dtoBody = ConvertEntityToDto(entity, dtoName, dtoType);
-            var dtoFileContent = Helpers.GetDtoContent(context.ProjectName, entity.Name, pluralizedModuleName, dtoType, baseClass, dtoBody);
+            var dtoFileContent = Helpers.GetDtoContent(context.ProjectName, baseName, pluralizedModuleName, entity.Name, dtoType, baseClass, dtoBody);
             var dtoFile = Path.Combine(targetPath, $"{dtoName}.cs");
             WriteLog($"Generated DTO: {dtoName}");
             File.WriteAllText(dtoFile, dtoFileContent);

@@ -66,7 +66,7 @@ namespace NestNet.Cli.Generators.ModuleGenerator
 
         private void CreateDtoFile(DtoType dtoType, Type? baseClass = null, string? properties = null)
         {
-            string dtoContent = Helpers.GetDtoContent(Context.ProjectContext!.ProjectName, Context.ArtifactName, Context.PluralizedModuleName, dtoType, baseClass, properties);
+            string dtoContent = Helpers.GetDtoContent(Context.ProjectContext!.ProjectName, Context.ArtifactName, Context.PluralizedModuleName, Context.ArtifactName + ".Entity", dtoType, baseClass, properties);
             string dtoPath = Path.Combine(Context.ProjectContext!.TargetPath, "Dtos", $"{Helpers.FormatDtoName(Context.ArtifactName, dtoType)}.cs");
             Directory.CreateDirectory(GetDirectoryName(dtoPath));
             File.WriteAllText(dtoPath, dtoContent);

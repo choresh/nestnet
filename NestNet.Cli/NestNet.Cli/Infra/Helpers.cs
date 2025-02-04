@@ -58,7 +58,7 @@ namespace NestNet.Cli.Infra
             return $"{baseName}{dtoType}Dto";
         }
 
-        public static string GetDtoContent(string projectName, string moduleName, string pluralizedModuleName, DtoType dtoType, Type? baseClass = null, string? properties = null)
+        public static string GetDtoContent(string projectName, string baseName, string pluralizedModuleName, string entityName, DtoType dtoType, Type? baseClass = null, string? properties = null)
         {
             var baseSyntax = baseClass == null
                 ? ""
@@ -73,9 +73,9 @@ namespace NestNet.Cli.Infra
     /// <summary>
     /// * This is an auto-generated DTO class.
     /// * Do not modify this file directly as it will be regenerated.
-    /// * To modify the properties, please update properties/attributes at the corresponding entity class.
+    /// * To modify the properties, please update properties/attributes at the corresponding entity class ('{entityName}').
     /// </summary>
-    public class {FormatDtoName(moduleName, dtoType)}{baseSyntax}
+    public class {FormatDtoName(baseName, dtoType)}{baseSyntax}
     {{
 {properties}
     }}
