@@ -160,10 +160,11 @@ namespace NestNet.Cli.Generators.DtosGenerator
 
             Directory.CreateDirectory(targetPath);
 
-            // Find all entity classes in current project assembly
+            // Find all entity classes in current project assembly, excluding test namespaces
             var entities = context.ProjectAssembly
                 .GetTypes()
-                .Where(t => t.GetCustomAttribute<TableAttribute>() != null);
+                .Where(t => t.GetCustomAttribute<TableAttribute>() != null 
+                           && (t.Namespace == null || !t.Namespace.Contains("Tests")));
 
             foreach (var entity in entities)
             {
