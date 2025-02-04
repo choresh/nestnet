@@ -49,7 +49,7 @@ namespace NestNet.Infra.BaseClasses
             });
             _mapper = config.CreateMapper();
             _repository = repository;
-           _selectableProps = typeof(TEntity)
+            _selectableProps = typeof(TEntity)
                 .GetProperties()
                 .Where(IsSelectableProp)
                 .Select(p => StringHelper.ToCamelCase(p.Name))
@@ -70,7 +70,7 @@ namespace NestNet.Infra.BaseClasses
 
         public virtual async Task<InternalCreateResult<TResultDto>> Create(TCreateDto createDto)
         {
-            TEntity entity = ToEntity(createDto); 
+            TEntity entity = ToEntity(createDto);
             await _repository.Create(entity);
             return new InternalCreateResult<TResultDto>()
             {
@@ -157,8 +157,8 @@ namespace NestNet.Infra.BaseClasses
 
             // Property must have PropAttribute, must not be marked as NotMapped,
             // and must not be marked with GenOpt.Ignore
-            return propAttribute != null 
-                && notMappedAttribute == null 
+            return propAttribute != null
+                && notMappedAttribute == null
                 && propAttribute.Result != GenOpt.Ignore;
         }
 
@@ -275,7 +275,7 @@ namespace NestNet.Infra.BaseClasses
                 }
             }
 
-            return new ()
+            return new()
             {
                 Data = safeRequest
             };
