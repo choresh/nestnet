@@ -1,6 +1,5 @@
 ﻿using NestNet.Infra.Paginatation;
 using NestNet.Infra.Query;
-using System.Linq.Expressions;
 
 namespace NestNet.Infra.BaseClasses
 {
